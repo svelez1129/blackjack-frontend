@@ -45,3 +45,4 @@ body {
 .animate-card-deal {
   animation: card-deal 1s ease-out;  /* Increased from 0.3s to 0.5s */
 }
+

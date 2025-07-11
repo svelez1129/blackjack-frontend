@@ -4,11 +4,10 @@ import type { Card } from '@/types/card'
 export function createDeck(): Card[] {
   const suits: Card['suit'][] = ['hearts', 'diamonds', 'clubs', 'spades']
   const values: Card['value'][] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
-  const values1: Card['value'][] = ['5','5','5','5','5','5']
   const deck: Card[] = []
   
   suits.forEach(suit => {
-    values1.forEach(value => {
+    values.forEach(value => {
       deck.push({
         suit,
         value,

@@ -8,6 +8,7 @@ import { Button} from '@/components/ui/Button'
 import { BlackjackEngine } from '@/lib/blackjack/engine'
 import { useState, useEffect } from 'react'
 import { GameResults } from '@/components/game/GameResults'
+import { BackgroundMusic } from '@/components/ui/BackgroundMusic'
 
 export default function PlayPage() {
   const [engine] = useState(() => new BlackjackEngine(1000))
@@ -26,7 +27,7 @@ export default function PlayPage() {
       const timer = setTimeout(() => {
         engine.resetForNextRound()
         setGameState(engine.getState())
-      }, 2000) // Show results for 2 seconds before resetting
+      }, 1000) // Show results for 1 seconds before resetting
 
       return () => clearTimeout(timer)
     }
@@ -198,6 +199,7 @@ export default function PlayPage() {
 
   return (
     <main className="h-screen bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-hidden">
+      <BackgroundMusic />
       <div className="container mx-auto px-4 py-6 h-full flex flex-col">
         {/* Header with money */}
         <div className="flex justify-end mb-8">
@@ -257,7 +259,7 @@ export default function PlayPage() {
           </div>
 
           {/* Betting Area - only show during betting phase */}
-          {(gameState.phase === 'betting' || (gameState.phase === 'finished' && gameState.money > 0))  && (
+          {gameState.phase === 'betting'  && (
             <div className="text-center">
               <div className="mb-3">
                 <p className="text-lg font-semibold">Choose Your Bet:</p>
