@@ -12,6 +12,13 @@ export default function PlayPage() {
   const [engine] = useState(() => new BlackjackEngine(1000))
   const [gameState, setGameState] = useState(engine.getState())
 
+  useEffect(() => {
+    // Set up callback for engine to trigger UI updates
+    engine.setStateUpdateCallback(() => {
+      setGameState(engine.getState())
+    })
+  }, [engine])
+
   const updateGameState = () => {
     setGameState(engine.getState())
   }
@@ -61,6 +68,7 @@ export default function PlayPage() {
             cards={gameState.dealerHand}
             hideSecondCard={gameState.isDealerSecondCardHidden}
             score={gameState.phase === 'finished' || !gameState.isDealerSecondCardHidden ? gameState.dealerScore : gameState.dealerVisibleScore}
+            dealingSequence={gameState.dealingSequences.dealer}
           />
           
           {/* Game Message */}
@@ -75,6 +83,7 @@ export default function PlayPage() {
             <PlayerHand 
               cards={gameState.playerHand}
               score={gameState.playerScore}
+              dealingSequence={gameState.dealingSequences.player}
             />
             
             {/* Show action buttons only during player's turn */}
