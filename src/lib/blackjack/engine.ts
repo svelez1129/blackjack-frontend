@@ -19,6 +19,7 @@ export interface GameState {
   phase: GamePhase
   results?: GameResult[]
   messages?: string[]
+  totalWinnings?: number
   isDealerSecondCardHidden: boolean
   dealingSequences: {
     player: number[][]  // Sequences for each hand
@@ -42,6 +43,7 @@ export class BlackjackEngine {
       bets: [25],
       money: initialMoney,
       phase: 'betting',
+      totalWinnings: 0,
       isDealerSecondCardHidden: true,
       dealingSequences: {
         player: [[]],
@@ -159,45 +161,46 @@ export class BlackjackEngine {
     }
   }
 
-  split(): void {
-    if (this.state.phase !== 'playing') return
-    
-    const handIndex = this.state.currentHandIndex
-    const currentHand = this.state.playerHands[handIndex]
-    
-    if (!canSplit(currentHand)) return
-    if (this.state.bets[handIndex] > this.state.money) return
-    if (this.state.playerHands.length >= 4) return // Max 4 hands
+split(): void {
+  if (this.state.phase !== 'playing') return
+  
+  const handIndex = this.state.currentHandIndex
+  const currentHand = this.state.playerHands[handIndex]
+  
+  if (!canSplit(currentHand)) return
+  if (this.state.bets[handIndex] > this.state.money) return
+  if (this.state.playerHands.length >= 4) return // Max 4 hands (3 splits)
 
-    // Deduct money for split bet
-    this.state.money -= this.state.bets[handIndex]
+  // Rest of split logic remains the same...
+  // Deduct money for split bet
+  this.state.money -= this.state.bets[handIndex]
 
-    // Split the hand
-    const [card1, card2] = currentHand
-    this.state.playerHands[handIndex] = [card1]
-    this.state.playerHands.splice(handIndex + 1, 0, [card2])
+  // Split the hand
+  const [card1, card2] = currentHand
+  this.state.playerHands[handIndex] = [card1]
+  this.state.playerHands.splice(handIndex + 1, 0, [card2])
 
-    // Add bet for new hand
-    this.state.bets.splice(handIndex + 1, 0, this.state.bets[handIndex])
+  // Add bet for new hand
+  this.state.bets.splice(handIndex + 1, 0, this.state.bets[handIndex])
 
-    // Add dealing sequence for new hand
-    this.state.dealingSequences.player.splice(handIndex + 1, 0, [0])
+  // Add dealing sequence for new hand
+  this.state.dealingSequences.player.splice(handIndex + 1, 0, [0])
 
-    // Deal one card to each split hand
-    const { card: newCard1, remainingDeck: deck1 } = dealCard(this.state.deck)
-    const { card: newCard2, remainingDeck: deck2 } = dealCard(deck1)
-    
-    this.state.playerHands[handIndex].push(newCard1)
-    this.state.playerHands[handIndex + 1].push(newCard2)
-    this.state.deck = deck2
+  // Deal one card to each split hand
+  const { card: newCard1, remainingDeck: deck1 } = dealCard(this.state.deck)
+  const { card: newCard2, remainingDeck: deck2 } = dealCard(deck1)
+  
+  this.state.playerHands[handIndex].push(newCard1)
+  this.state.playerHands[handIndex + 1].push(newCard2)
+  this.state.deck = deck2
 
-    // Set up animations for new cards
-    this.state.dealingSequences.player[handIndex][1] = 0
-    this.state.dealingSequences.player[handIndex + 1][1] = 300
+  // Set up animations for new cards
+  this.state.dealingSequences.player[handIndex][1] = 0
+  this.state.dealingSequences.player[handIndex + 1][1] = 300
 
-    this.updateScores()
-    this.onStateUpdate?.()
-  }
+  this.updateScores()
+  this.onStateUpdate?.()
+}
 
   private moveToNextHand(): void {
     if (this.state.currentHandIndex < this.state.playerHands.length - 1) {
@@ -214,12 +217,12 @@ export class BlackjackEngine {
   }
 
   canSplitCurrentHand(): boolean {
-    const handIndex = this.state.currentHandIndex
-    const currentHand = this.state.playerHands[handIndex]
-    return canSplit(currentHand) && 
-           this.state.bets[handIndex] <= this.state.money &&
-           this.state.playerHands.length < 4
-  }
+  const handIndex = this.state.currentHandIndex
+  const currentHand = this.state.playerHands[handIndex]
+  return canSplit(currentHand) && 
+         this.state.bets[handIndex] <= this.state.money &&
+         this.state.playerHands.length < 4  // Max 4 hands
+}
 
   canDoubleCurrentHand(): boolean {
     const handIndex = this.state.currentHandIndex
@@ -309,22 +312,60 @@ export class BlackjackEngine {
     this.state.results = results
     this.state.messages = messages
 
+    let totalWinnings = 0
+
     // Award winnings for each hand
     results.forEach((result, index) => {
-      const bet = this.state.bets[index]
-      
-      if (result === 'win') {
-        this.state.money += bet * 2
-      } else if (result === 'blackjack') {
-        this.state.money += Math.floor(bet * 2.5)
-      } else if (result === 'push') {
-        this.state.money += bet
-      }
+        const bet = this.state.bets[index]
+        let handWinnings = 0
+        
+        if (result === 'win') {
+        handWinnings = bet  // Win the bet amount
+        this.state.money += bet * 2  // Get bet back + winnings
+        } else if (result === 'blackjack') {
+        handWinnings = Math.floor(bet * 1.5)  // 3:2 payout
+        this.state.money += bet + handWinnings  // Get bet back + winnings
+        } else if (result === 'push') {
+        handWinnings = 0  // No change
+        this.state.money += bet  // Just get bet back
+        } else {
+        handWinnings = -bet  // Lose the bet
+        // Money already deducted when bet was placed
+        }
+        
+        totalWinnings += handWinnings
     })
+
+    // Store total winnings for display
+    this.state.totalWinnings = totalWinnings
 
     this.onStateUpdate?.()
   }
 
+  // Add this new method after the endGame method
+  resetForNextRound(): void {
+        this.state.playerHands = [[]]
+        this.state.dealerHand = []
+        this.state.currentHandIndex = 0
+        this.state.playerScores = [0]
+        this.state.dealerScore = 0
+        this.state.dealerVisibleScore = 0
+        this.state.bets = [25]
+        this.state.phase = 'betting'
+        this.state.results = undefined
+        this.state.messages = undefined
+        this.state.totalWinnings = 0
+        this.state.isDealerSecondCardHidden = true
+        this.state.dealingSequences = {
+            player: [[]],
+            dealer: []
+        }
+        // Keep money and deck as they are
+        // Reshuffle deck if getting low
+        if (this.state.deck.length < 50) {
+            this.state.deck = createSixDeckShoe()
+        }
+  }
   newGame(): void {
     const currentMoney = this.state.money
     this.state = {
@@ -338,6 +379,7 @@ export class BlackjackEngine {
       bets: [25],
       money: currentMoney,
       phase: 'betting',
+      totalWinnings: 0,
       isDealerSecondCardHidden: true,
       dealingSequences: {
         player: [[]],
