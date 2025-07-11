@@ -1,69 +1,124 @@
 'use client'
 
-import { Card } from '@/components/ui/Card'
+import { PlayerHand } from '@/components/game/PlayerHand'
+import { DealerHand } from '@/components/game/DealerHand'
+import { ActionButtons } from '@/components/game/ActionButtons'
+import { Chip } from '@/components/ui/Chip'
 import { Button } from '@/components/ui/Button'
-import type { Card as CardType } from '@/types/card'
+import { BlackjackEngine } from '@/lib/blackjack/engine'
+import { useState, useEffect } from 'react'
 
 export default function PlayPage() {
-  // Create some test cards to display
-  const testCards: CardType[] = [
-    { suit: 'hearts', value: 'K', id: 'test-1' },
-    { suit: 'spades', value: 'A', id: 'test-2' },
-    { suit: 'diamonds', value: '10', id: 'test-3' },
-    { suit: 'clubs', value: '7', id: 'test-4' },
-  ]
+  const [engine] = useState(() => new BlackjackEngine(1000))
+  const [gameState, setGameState] = useState(engine.getState())
 
-  // Button handlers (temporary - just console logs for now)
+  const updateGameState = () => {
+    setGameState(engine.getState())
+  }
+
+  const handlePlaceBet = (amount: 10 | 25 | 50 | 100) => {
+    engine.placeBet(amount)
+    updateGameState()
+  }
+
   const handleHit = () => {
-    console.log('Player chose: Hit')
+    engine.hit()
+    updateGameState()
   }
 
   const handleStand = () => {
-    console.log('Player chose: Stand')
+    engine.stand()
+    updateGameState()
   }
 
   const handleDouble = () => {
-    console.log('Player chose: Double')
+    engine.double()
+    updateGameState()
   }
 
+  const handleNewGame = () => {
+    engine.newGame()
+    updateGameState()
+  }
+
+  const canDouble = gameState.playerHand.length === 2 && 
+                   gameState.currentBet <= gameState.money &&
+                   gameState.phase === 'playing'
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 text-white">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-16">
-          Blackjack - Play Mode
-        </h1>
+    <main className="h-screen bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-hidden">
+      <div className="container mx-auto px-4 py-6 h-full flex flex-col">
+        {/* Header with money */}
+        <div className="flex justify-end mb-8">
+          <div className="text-right">
+            <p className="text-xl font-bold">Money: <span className="text-green-400">${gameState.money}</span></p>
+          </div>
+        </div>
                 
-        <div className="max-w-2xl mx-auto space-y-16">
+        <div className="flex-1 flex flex-col justify-between max-w-2xl mx-auto w-full">
           {/* Dealer Hand */}
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Dealer Hand</h2>
-            <div className="flex gap-3 justify-center">
-              <Card card={testCards[2]} />
-              <Card card={testCards[3]} isFlipped={true} />
-            </div>
-          </div>
+          <DealerHand 
+            cards={gameState.dealerHand}
+            hideSecondCard={gameState.isDealerSecondCardHidden}
+            score={gameState.phase === 'finished' || !gameState.isDealerSecondCardHidden ? gameState.dealerScore : gameState.dealerVisibleScore}
+          />
           
-          {/* Player Hand */}
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Your Hand</h2>
-            <div className="flex gap-3 justify-center mb-8">
-              <Card card={testCards[0]} />
-              <Card card={testCards[1]} />
+          {/* Game Message */}
+          {gameState.message && (
+            <div className="text-center">
+              <p className="text-2xl font-bold text-yellow-400">{gameState.message}</p>
             </div>
+          )}
+          
+          {/* Player Hand and Actions */}
+          <div className="space-y-6">
+            <PlayerHand 
+              cards={gameState.playerHand}
+              score={gameState.playerScore}
+            />
             
-            {/* Action Buttons */}
-            <div className="flex gap-4 justify-center mt-16">
-              <Button onClick={handleHit} variant="primary">
-                Hit
-              </Button>
-              <Button onClick={handleStand} variant="secondary">
-                Stand  
-              </Button>
-              <Button onClick={handleDouble} variant="danger">
-                Double
-              </Button>
-            </div>
+            {/* Show action buttons only during player's turn */}
+            {gameState.phase === 'playing' && (
+              <ActionButtons
+                onHit={handleHit}
+                onStand={handleStand}
+                onDouble={handleDouble}
+                canDouble={canDouble}
+              />
+            )}
+
+            {/* Show new game button when game is finished */}
+            {gameState.phase === 'finished' && (
+              <div className="flex justify-center">
+                <Button onClick={handleNewGame} variant="primary">
+                  New Game
+                </Button>
+              </div>
+            )}
           </div>
+
+          {/* Betting Area - only show during betting phase */}
+          {gameState.phase === 'betting' && (
+            <div className="text-center">
+              <div className="mb-3">
+                <p className="text-lg font-semibold">Choose Your Bet:</p>
+              </div>
+              
+              <div className="flex gap-4 justify-center">
+                <Chip value={10} isSelected={false} onClick={handlePlaceBet} />
+                <Chip value={25} isSelected={false} onClick={handlePlaceBet} />
+                <Chip value={50} isSelected={false} onClick={handlePlaceBet} />
+                <Chip value={100} isSelected={false} onClick={handlePlaceBet} />
+              </div>
+            </div>
+          )}
+
+          {/* Show current bet during game */}
+          {gameState.phase !== 'betting' && (
+            <div className="text-center">
+              <p className="text-lg font-semibold">Current Bet: <span className="text-yellow-400">${gameState.currentBet}</span></p>
+            </div>
+          )}
         </div>
       </div>
     </main>
