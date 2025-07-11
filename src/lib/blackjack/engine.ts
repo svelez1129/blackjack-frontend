@@ -1,25 +1,27 @@
 import type { Card } from '@/types/card'
 import { createSixDeckShoe, dealCard } from './deck'
 import { calculateHandScore, isBlackjack, isBust } from './scoring'
+import { canSplit } from '@/types/game'
 
 export type GamePhase = 'betting' | 'dealing' | 'playing' | 'dealer' | 'finished'
 export type GameResult = 'win' | 'lose' | 'push' | 'blackjack'
 
 export interface GameState {
-  playerHand: Card[]
+  playerHands: Card[][]  // Array of hands for splitting
   dealerHand: Card[]
   deck: Card[]
-  playerScore: number
+  currentHandIndex: number
+  playerScores: number[]
   dealerScore: number
   dealerVisibleScore: number
-  currentBet: number
+  bets: number[]  // Bet for each hand
   money: number
   phase: GamePhase
-  result?: GameResult
-  message?: string
+  results?: GameResult[]
+  messages?: string[]
   isDealerSecondCardHidden: boolean
   dealingSequences: {
-    player: number[]
+    player: number[][]  // Sequences for each hand
     dealer: number[]
   }
 }
@@ -30,18 +32,19 @@ export class BlackjackEngine {
 
   constructor(initialMoney: number = 1000) {
     this.state = {
-      playerHand: [],
+      playerHands: [[]],
       dealerHand: [],
       deck: createSixDeckShoe(),
-      playerScore: 0,
+      currentHandIndex: 0,
+      playerScores: [0],
       dealerScore: 0,
       dealerVisibleScore: 0,
-      currentBet: 25,
+      bets: [25],
       money: initialMoney,
       phase: 'betting',
       isDealerSecondCardHidden: true,
       dealingSequences: {
-        player: [],
+        player: [[]],
         dealer: []
       }
     }
@@ -59,105 +62,170 @@ export class BlackjackEngine {
     if (this.state.phase !== 'betting') return
     if (amount > this.state.money) return
     
-    this.state.currentBet = amount
+    this.state.bets = [amount]
     this.state.money -= amount
     this.state.phase = 'dealing'
     this.dealInitialCards()
   }
 
   private dealInitialCards(): void {
-    const CARD_DELAY = 600 // 600ms between each card
+    const CARD_DELAY = 600
 
-    // Deal cards immediately to hands but set up animation timing
+    // Deal 2 cards to player, 2 to dealer
     const { card: playerCard1, remainingDeck: deck1 } = dealCard(this.state.deck)
     const { card: dealerCard1, remainingDeck: deck2 } = dealCard(deck1)
     const { card: playerCard2, remainingDeck: deck3 } = dealCard(deck2)
     const { card: dealerCard2, remainingDeck: deck4 } = dealCard(deck3)
 
-    this.state.playerHand = [playerCard1, playerCard2]
+    this.state.playerHands = [[playerCard1, playerCard2]]
     this.state.dealerHand = [dealerCard1, dealerCard2]
     this.state.deck = deck4
+    this.state.currentHandIndex = 0
     this.state.isDealerSecondCardHidden = true
 
     // Set up dealing sequence timing
     this.state.dealingSequences = {
-      player: [0, CARD_DELAY * 2],           // Player: immediate, then at 1200ms
+      player: [[0, CARD_DELAY * 2]],  // Player: immediate, then at 1200ms
       dealer: [CARD_DELAY, CARD_DELAY * 3]   // Dealer: 600ms, then 1800ms
     }
 
     this.updateScores()
 
-    // Transition to playing phase immediately after dealing starts
-    // This allows buttons to show while cards are animating
+    // Transition to playing phase
     setTimeout(() => {
       this.state.phase = 'playing'
       this.onStateUpdate?.()
 
-      // Check for blackjacks after all cards are dealt
+      // Check for blackjacks after dealing
       setTimeout(() => {
-        if (isBlackjack(this.state.playerHand)) {
+        if (isBlackjack(this.state.playerHands[0])) {
           if (isBlackjack(this.state.dealerHand)) {
             this.revealDealerCard()
-            this.endGame('push', 'Both have blackjack - Push!')
+            this.endGame(['push'], ['Both have blackjack - Push!'])
           } else {
-            this.endGame('blackjack', 'Blackjack! You win!')
+            this.endGame(['blackjack'], ['Blackjack! You win!'])
           }
         } else if (isBlackjack(this.state.dealerHand)) {
           this.revealDealerCard()
-          this.endGame('lose', 'Dealer has blackjack!')
+          this.endGame(['lose'], ['Dealer has blackjack!'])
         }
         this.onStateUpdate?.()
-      }, CARD_DELAY * 2) // Wait for player's second card to appear
-    }, 100) // Small delay to show dealing phase briefly
+      }, CARD_DELAY * 2)
+    }, 100)
   }
 
   hit(): void {
     if (this.state.phase !== 'playing') return
-
+    
+    const handIndex = this.state.currentHandIndex
     const { card, remainingDeck } = dealCard(this.state.deck)
-    this.state.playerHand.push(card)
+    
+    this.state.playerHands[handIndex].push(card)
     this.state.deck = remainingDeck
 
     // Add timing for new card
-    const newCardIndex = this.state.playerHand.length - 1
-    this.state.dealingSequences.player[newCardIndex] = 0 // New cards appear immediately
+    const newCardIndex = this.state.playerHands[handIndex].length - 1
+    this.state.dealingSequences.player[handIndex][newCardIndex] = 0
 
     this.updateScores()
 
-    if (isBust(this.state.playerHand)) {
-      this.revealDealerCard()
-      this.endGame('lose', 'Bust! You lose.')
+    if (isBust(this.state.playerHands[handIndex])) {
+      this.moveToNextHand()
     }
   }
 
   stand(): void {
     if (this.state.phase !== 'playing') return
-
-    this.revealDealerCard()
-    this.state.phase = 'dealer'
-    
-    // Small delay before dealer starts playing
-    setTimeout(() => {
-      this.playDealerHand()
-    }, 500)
+    this.moveToNextHand()
   }
 
   double(): void {
     if (this.state.phase !== 'playing') return
-    if (this.state.playerHand.length !== 2) return
-    if (this.state.currentBet > this.state.money) return
+    
+    const handIndex = this.state.currentHandIndex
+    if (this.state.playerHands[handIndex].length !== 2) return
+    if (this.state.bets[handIndex] > this.state.money) return
 
     // Double the bet
-    this.state.money -= this.state.currentBet
-    this.state.currentBet *= 2
+    this.state.money -= this.state.bets[handIndex]
+    this.state.bets[handIndex] *= 2
 
-    // Hit once and stand
+    // Hit once and move to next hand
     this.hit()
     if (this.state.phase === 'playing') {
       setTimeout(() => {
-        this.stand()
+        this.moveToNextHand()
       }, 300)
     }
+  }
+
+  split(): void {
+    if (this.state.phase !== 'playing') return
+    
+    const handIndex = this.state.currentHandIndex
+    const currentHand = this.state.playerHands[handIndex]
+    
+    if (!canSplit(currentHand)) return
+    if (this.state.bets[handIndex] > this.state.money) return
+    if (this.state.playerHands.length >= 4) return // Max 4 hands
+
+    // Deduct money for split bet
+    this.state.money -= this.state.bets[handIndex]
+
+    // Split the hand
+    const [card1, card2] = currentHand
+    this.state.playerHands[handIndex] = [card1]
+    this.state.playerHands.splice(handIndex + 1, 0, [card2])
+
+    // Add bet for new hand
+    this.state.bets.splice(handIndex + 1, 0, this.state.bets[handIndex])
+
+    // Add dealing sequence for new hand
+    this.state.dealingSequences.player.splice(handIndex + 1, 0, [0])
+
+    // Deal one card to each split hand
+    const { card: newCard1, remainingDeck: deck1 } = dealCard(this.state.deck)
+    const { card: newCard2, remainingDeck: deck2 } = dealCard(deck1)
+    
+    this.state.playerHands[handIndex].push(newCard1)
+    this.state.playerHands[handIndex + 1].push(newCard2)
+    this.state.deck = deck2
+
+    // Set up animations for new cards
+    this.state.dealingSequences.player[handIndex][1] = 0
+    this.state.dealingSequences.player[handIndex + 1][1] = 300
+
+    this.updateScores()
+    this.onStateUpdate?.()
+  }
+
+  private moveToNextHand(): void {
+    if (this.state.currentHandIndex < this.state.playerHands.length - 1) {
+      this.state.currentHandIndex++
+      this.onStateUpdate?.()
+    } else {
+      // All hands played, move to dealer
+      this.revealDealerCard()
+      this.state.phase = 'dealer'
+      setTimeout(() => {
+        this.playDealerHand()
+      }, 500)
+    }
+  }
+
+  canSplitCurrentHand(): boolean {
+    const handIndex = this.state.currentHandIndex
+    const currentHand = this.state.playerHands[handIndex]
+    return canSplit(currentHand) && 
+           this.state.bets[handIndex] <= this.state.money &&
+           this.state.playerHands.length < 4
+  }
+
+  canDoubleCurrentHand(): boolean {
+    const handIndex = this.state.currentHandIndex
+    return this.state.playerHands[handIndex].length === 2 && 
+           this.state.bets[handIndex] <= this.state.money &&
+           this.state.phase === 'playing'
   }
 
   private revealDealerCard(): void {
@@ -176,30 +244,45 @@ export class BlackjackEngine {
         this.state.dealerHand.push(card)
         this.state.deck = remainingDeck
 
-        // Add timing for new dealer card
         const newCardIndex = this.state.dealerHand.length - 1
         this.state.dealingSequences.dealer[newCardIndex] = 0
 
         this.onStateUpdate?.()
-
-        // Continue dealing after animation
         setTimeout(dealMoreCards, 1000)
       } else {
-        // Determine winner
-        if (isBust(this.state.dealerHand)) {
-          this.endGame('win', 'Dealer busts! You win!')
-        } else if (this.state.playerScore > this.state.dealerScore) {
-          this.endGame('win', 'You win!')
-        } else if (this.state.playerScore < this.state.dealerScore) {
-          this.endGame('lose', 'Dealer wins.')
-        } else {
-          this.endGame('push', 'Push!')
-        }
-        this.onStateUpdate?.()
+        this.determineWinners()
       }
     }
 
     dealMoreCards()
+  }
+
+  private determineWinners(): void {
+    const results: GameResult[] = []
+    const messages: string[] = []
+
+    this.state.playerHands.forEach((hand, index) => {
+      const playerScore = this.state.playerScores[index]
+      
+      if (isBust(hand)) {
+        results.push('lose')
+        messages.push(`Hand ${index + 1}: Bust!`)
+      } else if (isBust(this.state.dealerHand)) {
+        results.push('win')
+        messages.push(`Hand ${index + 1}: Dealer busts - You win!`)
+      } else if (playerScore > this.state.dealerScore) {
+        results.push('win')
+        messages.push(`Hand ${index + 1}: You win!`)
+      } else if (playerScore < this.state.dealerScore) {
+        results.push('lose')
+        messages.push(`Hand ${index + 1}: Dealer wins`)
+      } else {
+        results.push('push')
+        messages.push(`Hand ${index + 1}: Push`)
+      }
+    })
+
+    this.endGame(results, messages)
   }
 
   private isDealerSoft(): boolean {
@@ -208,7 +291,10 @@ export class BlackjackEngine {
   }
 
   private updateScores(): void {
-    this.state.playerScore = calculateHandScore(this.state.playerHand).score
+    this.state.playerScores = this.state.playerHands.map(hand => 
+      calculateHandScore(hand).score
+    )
+    
     this.state.dealerScore = calculateHandScore(this.state.dealerHand).score
     
     if (this.state.isDealerSecondCardHidden && this.state.dealerHand.length >= 1) {
@@ -218,35 +304,43 @@ export class BlackjackEngine {
     }
   }
 
-  private endGame(result: GameResult, message: string): void {
+  private endGame(results: GameResult[], messages: string[]): void {
     this.state.phase = 'finished'
-    this.state.result = result
-    this.state.message = message
+    this.state.results = results
+    this.state.messages = messages
 
-    if (result === 'win') {
-      this.state.money += this.state.currentBet * 2
-    } else if (result === 'blackjack') {
-      this.state.money += Math.floor(this.state.currentBet * 2.5)
-    } else if (result === 'push') {
-      this.state.money += this.state.currentBet
-    }
+    // Award winnings for each hand
+    results.forEach((result, index) => {
+      const bet = this.state.bets[index]
+      
+      if (result === 'win') {
+        this.state.money += bet * 2
+      } else if (result === 'blackjack') {
+        this.state.money += Math.floor(bet * 2.5)
+      } else if (result === 'push') {
+        this.state.money += bet
+      }
+    })
+
+    this.onStateUpdate?.()
   }
 
   newGame(): void {
     const currentMoney = this.state.money
     this.state = {
-      playerHand: [],
+      playerHands: [[]],
       dealerHand: [],
       deck: this.state.deck.length < 50 ? createSixDeckShoe() : this.state.deck,
-      playerScore: 0,
+      currentHandIndex: 0,
+      playerScores: [0],
       dealerScore: 0,
       dealerVisibleScore: 0,
-      currentBet: 25,
+      bets: [25],
       money: currentMoney,
       phase: 'betting',
       isDealerSecondCardHidden: true,
       dealingSequences: {
-        player: [],
+        player: [[]],
         dealer: []
       }
     }

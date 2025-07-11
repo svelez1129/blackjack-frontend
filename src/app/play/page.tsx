@@ -43,14 +43,18 @@ export default function PlayPage() {
     updateGameState()
   }
 
+  const handleSplit = () => {
+    engine.split()
+    updateGameState()
+  }
+
   const handleNewGame = () => {
     engine.newGame()
     updateGameState()
   }
 
-  const canDouble = gameState.playerHand.length === 2 && 
-                   gameState.currentBet <= gameState.money &&
-                   gameState.phase === 'playing'
+  const canDouble = engine.canDoubleCurrentHand()
+  const canSplit = engine.canSplitCurrentHand()
 
   return (
     <main className="h-screen bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-hidden">
@@ -62,7 +66,7 @@ export default function PlayPage() {
           </div>
         </div>
                 
-        <div className="flex-1 flex flex-col justify-between max-w-2xl mx-auto w-full">
+        <div className="flex-1 flex flex-col justify-between max-w-4xl mx-auto w-full">
           {/* Dealer Hand */}
           <DealerHand 
             cards={gameState.dealerHand}
@@ -71,20 +75,32 @@ export default function PlayPage() {
             dealingSequence={gameState.dealingSequences.dealer}
           />
           
-          {/* Game Message */}
-          {gameState.message && (
+          {/* Game Messages */}
+          {gameState.messages && gameState.messages.length > 0 && (
             <div className="text-center">
-              <p className="text-2xl font-bold text-yellow-400">{gameState.message}</p>
+              {gameState.messages.map((message, index) => (
+                <p key={index} className="text-lg font-bold text-yellow-400">{message}</p>
+              ))}
             </div>
           )}
           
-          {/* Player Hand and Actions */}
+          {/* Player Hands and Actions */}
           <div className="space-y-6">
-            <PlayerHand 
-              cards={gameState.playerHand}
-              score={gameState.playerScore}
-              dealingSequence={gameState.dealingSequences.player}
-            />
+            {/* Display all player hands */}
+            <div className="space-y-4">
+              {gameState.playerHands.map((hand, index) => (
+                <div key={index} className={`${index === gameState.currentHandIndex && gameState.phase === 'playing' ? 'ring-2 ring-yellow-400 rounded-lg p-2' : ''}`}>
+                  <PlayerHand 
+                    cards={hand}
+                    score={gameState.playerScores[index]}
+                    dealingSequence={gameState.dealingSequences.player[index] || []}
+                    handNumber={gameState.playerHands.length > 1 ? index + 1 : undefined}
+                    isActive={index === gameState.currentHandIndex && gameState.phase === 'playing'}
+                    bet={gameState.bets[index]}
+                  />
+                </div>
+              ))}
+            </div>
             
             {/* Show action buttons only during player's turn */}
             {gameState.phase === 'playing' && (
@@ -92,7 +108,9 @@ export default function PlayPage() {
                 onHit={handleHit}
                 onStand={handleStand}
                 onDouble={handleDouble}
+                onSplit={handleSplit}
                 canDouble={canDouble}
+                canSplit={canSplit}
               />
             )}
 
@@ -122,10 +140,16 @@ export default function PlayPage() {
             </div>
           )}
 
-          {/* Show current bet during game */}
+          {/* Show current bets during game */}
           {gameState.phase !== 'betting' && (
             <div className="text-center">
-              <p className="text-lg font-semibold">Current Bet: <span className="text-yellow-400">${gameState.currentBet}</span></p>
+              {gameState.bets.length === 1 ? (
+                <p className="text-lg font-semibold">Current Bet: <span className="text-yellow-400">${gameState.bets[0]}</span></p>
+              ) : (
+                <p className="text-lg font-semibold">
+                  Total Bets: <span className="text-yellow-400">${gameState.bets.reduce((sum, bet) => sum + bet, 0)}</span>
+                </p>
+              )}
             </div>
           )}
         </div>
