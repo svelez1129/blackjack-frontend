@@ -451,7 +451,7 @@ export default function PlayPage() {
         </div>
 
         {/* Blackjack Table Area */}
-        <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex items-start justify-center pt-2 px-4">
           <div className="relative w-full max-w-6xl h-full max-h-[600px]">
             
             {/* Felt Table Surface */}
@@ -482,11 +482,39 @@ export default function PlayPage() {
                           ? 'border-yellow-400 bg-yellow-400/10' 
                           : 'border-yellow-400/50 bg-green-800/30'
                       }`}>
-                        {/* Betting circle content */}
+                        {/* Betting circle content - realistic chip display */}
                         <div className="absolute inset-0 flex items-center justify-center">
-                          {gameState.bets[index] && (
-                            <div className="text-yellow-400 font-bold text-sm">
-                              ${gameState.bets[index]}
+                          {gameState.bets[index] ? (
+                            <div className="relative">
+                              {/* Render actual chip based on bet amount */}
+                              {(() => {
+                                const bet = gameState.bets[index]
+                                const getChipColor = (amount: number) => {
+                                  if (amount >= 100) return 'bg-gradient-to-br from-black via-gray-800 to-black border-2 border-yellow-400'
+                                  if (amount >= 50) return 'bg-gradient-to-br from-purple-600 via-purple-500 to-purple-700 border-2 border-purple-300'
+                                  if (amount >= 25) return 'bg-gradient-to-br from-green-600 via-green-500 to-green-700 border-2 border-green-300'
+                                  return 'bg-gradient-to-br from-red-600 via-red-500 to-red-700 border-2 border-red-300'
+                                }
+                                
+                                const getTextColor = (amount: number) => {
+                                  if (amount >= 100) return 'text-yellow-400'
+                                  return 'text-white'
+                                }
+                                
+                                return (
+                                  <div className={`w-16 h-16 rounded-full ${getChipColor(bet)} flex items-center justify-center shadow-lg animate-chip-place`}>
+                                    <div className="absolute inset-1 rounded-full border border-white/20"></div>
+                                    <span className={`font-bold text-xs ${getTextColor(bet)} font-serif text-shadow`}>
+                                      ${bet}
+                                    </span>
+                                  </div>
+                                )
+                              })()}
+                            </div>
+                          ) : (
+                            // Empty betting circle 
+                            <div className="text-yellow-400/40 font-bold text-xs tracking-widest">
+                              BET
                             </div>
                           )}
                         </div>
@@ -548,7 +576,7 @@ export default function PlayPage() {
               </div>
               
               {/* Player Area */}
-              <div className="space-y-6">
+              <div className="space-y-5">
                 {/* Dynamic player hands layout */}
                 <div className="flex justify-center">
                   {renderPlayerHands()}
@@ -571,16 +599,34 @@ export default function PlayPage() {
                 {/* Betting Area - luxury casino style */}
                 {gameState.phase === 'betting' && (
                   <div className="text-center">
-                    <div className="mb-4">
-                      <p className="text-xl font-serif text-yellow-400 tracking-wide">Place Your Bet</p>
-                      <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto mt-2"></div>
+                    <div className="mb-6">
+                      <p className="text-2xl font-serif text-yellow-400 tracking-wider">Place Your Bet</p>
+                      <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto mt-3"></div>
+                      <p className="text-sm text-gray-400 mt-2 tracking-wide">Select a chip value to begin</p>
                     </div>
                     
-                    <div className="flex gap-6 justify-center">
-                      <Chip value={10} isSelected={false} onClick={handlePlaceBet} />
-                      <Chip value={25} isSelected={false} onClick={handlePlaceBet} />
-                      <Chip value={50} isSelected={false} onClick={handlePlaceBet} />
-                      <Chip value={100} isSelected={false} onClick={handlePlaceBet} />
+                    {/* Compact chip tray layout */}
+                    <div className="relative">
+                      {/* Chip tray background */}
+                      <div className="inline-block bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-xl p-3 border border-yellow-400/30 shadow-xl">
+                        <div className="absolute inset-1 bg-gradient-to-br from-gray-700/20 via-transparent to-gray-900/30 rounded-lg"></div>
+                        
+                        {/* Compact chip layout */}
+                        <div className="relative flex gap-3 justify-center items-center">
+                          <Chip value={10} isSelected={false} onClick={handlePlaceBet} />
+                          <Chip value={25} isSelected={false} onClick={handlePlaceBet} />
+                          <Chip value={50} isSelected={false} onClick={handlePlaceBet} />
+                          <Chip value={100} isSelected={false} onClick={handlePlaceBet} />
+                        </div>
+                        
+                        {/* Tray label */}
+                        <div className="text-center mt-2">
+                          <div className="text-xs text-yellow-400/60 font-serif tracking-wider">SELECT CHIP</div>
+                        </div>
+                      </div>
+                      
+                      {/* Subtle glow around tray */}
+                      <div className="absolute inset-0 bg-gradient-radial from-yellow-400/10 via-transparent to-transparent blur-lg -z-10"></div>
                     </div>
                   </div>
                 )}
