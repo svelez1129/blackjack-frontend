@@ -4,9 +4,10 @@ interface ChipProps {
   value: 10 | 25 | 50 | 100
   isSelected?: boolean
   onClick: (value: 10 | 25 | 50 | 100) => void
+  disabled?: boolean
 }
 
-export function Chip({ value, isSelected = false, onClick }: ChipProps) {
+export function Chip({ value, isSelected = false, onClick, disabled = false }: ChipProps) {
   // Authentic casino chip colors and styling
   const chipStyles = {
     10: {
@@ -41,14 +42,15 @@ export function Chip({ value, isSelected = false, onClick }: ChipProps) {
   
   return (
     <button
-      onClick={() => onClick(value)}
+      onClick={() => !disabled && onClick(value)}
+      disabled={disabled}
       className={`
-        relative w-16 h-16 rounded-full 
+        relative w-16 h-12 rounded-full 
         ${currentStyle.bg} 
-        ${currentStyle.accent} font-bold text-sm
-        shadow-xl border-2 ${currentStyle.border}
+        ${currentStyle.accent} font-bold text-xs
+        shadow-lg border ${currentStyle.border}
         transition-all duration-300
-        hover:scale-110 hover:shadow-2xl active:scale-95
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110 hover:shadow-xl active:scale-95'}
         ${selectedStyle}
         group
       `}
@@ -81,7 +83,7 @@ export function Chip({ value, isSelected = false, onClick }: ChipProps) {
       </div>
       
       {/* Subtle shine effect */}
-      <div className="absolute top-0.5 left-0.5 right-0.5 h-2 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-t-full"></div>
+      <div className="absolute top-0.5 left-0.5 right-0.5 h-1.5 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-t-full"></div>
       
       {/* Hover glow */}
       <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/10 transition-all duration-300"></div>

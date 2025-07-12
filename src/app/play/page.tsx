@@ -23,6 +23,7 @@ export default function PlayPage() {
   const [gameState, setGameState] = useState(engine.getState())
   const [showWelcomeBack, setShowWelcomeBack] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [currentBet, setCurrentBet] = useState(0) // Track current bet being built
   
   // Achievements
   const { 
@@ -173,12 +174,30 @@ export default function PlayPage() {
     setGameState(engine.getState())
   }
 
-  const handlePlaceBet = async (amount: 10 | 25 | 50 | 100) => {
-    engine.placeBet(amount)
-    updateGameState()
-    
-    // Track first hand achievement
-    await trackAchievements({ 'first_hand': 1 })
+  const handleAddToBet = (amount: 10 | 25 | 50 | 100) => {
+    // Don't allow betting more than player has
+    if (currentBet + amount <= gameState.money) {
+      setCurrentBet(prev => prev + amount)
+    }
+  }
+
+  const handleAllIn = () => {
+    setCurrentBet(gameState.money)
+  }
+
+  const handleClearBet = () => {
+    setCurrentBet(0)
+  }
+
+  const handlePlaceBet = async () => {
+    if (currentBet > 0) {
+      engine.placeBet(currentBet)
+      updateGameState()
+      setCurrentBet(0) // Reset bet for next round
+      
+      // Track first hand achievement
+      await trackAchievements({ 'first_hand': 1 })
+    }
   }
 
   const handleHit = async () => {
@@ -628,23 +647,88 @@ export default function PlayPage() {
                 {gameState.phase === 'betting' && (
                   <div className="text-center mt-30">
                     
-                    {/* Compact chip tray layout */}
+                    {/* Current Bet Display - Always visible */}
+                    <div className="flex justify-center">
+                      <div className="bg-gradient-to-r from-gray-900 via-black to-gray-900 rounded-lg px-4 py-2 border border-yellow-400/40 shadow-lg">
+                        <div className="text-yellow-400 font-serif font-bold text-base">
+                          Current Bet: ${currentBet}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Chip tray layout */}
                     <div className="relative">
                       {/* Chip tray background */}
-                      <div className="inline-block bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-xl px-8 py-4 border border-yellow-400/30 shadow-xl">
-                        <div className="absolute inset-1 bg-gradient-to-br from-gray-700/20 via-transparent to-gray-900/30 rounded-lg"></div>
+                      <div className="inline-block bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-lg px-4 py-3 border border-yellow-400/30 shadow-lg">
+                        <div className="absolute inset-1 bg-gradient-to-br from-gray-700/20 via-transparent to-gray-900/30 rounded-md"></div>
                         
-                        {/* Wider chip layout */}
-                        <div className="relative flex gap-6 justify-center items-center">
-                          <Chip value={10} isSelected={false} onClick={handlePlaceBet} />
-                          <Chip value={25} isSelected={false} onClick={handlePlaceBet} />
-                          <Chip value={50} isSelected={false} onClick={handlePlaceBet} />
-                          <Chip value={100} isSelected={false} onClick={handlePlaceBet} />
+                        {/* Chip layout with buttons */}
+                        <div className="relative flex gap-3 justify-center items-center">
+                          {/* Reset Button */}
+                          <div className="mr-2">
+                            <Button 
+                              onClick={handleClearBet}
+                              variant="secondary"
+                              disabled={currentBet === 0}
+                              className="px-3 py-2 text-xs"
+                            >
+                              🔄 Reset
+                            </Button>
+                          </div>
+                          
+                          <Chip 
+                            value={10} 
+                            isSelected={false} 
+                            onClick={handleAddToBet}
+                            disabled={currentBet + 10 > gameState.money}
+                          />
+                          <Chip 
+                            value={25} 
+                            isSelected={false} 
+                            onClick={handleAddToBet}
+                            disabled={currentBet + 25 > gameState.money}
+                          />
+                          <Chip 
+                            value={50} 
+                            isSelected={false} 
+                            onClick={handleAddToBet}
+                            disabled={currentBet + 50 > gameState.money}
+                          />
+                          <Chip 
+                            value={100} 
+                            isSelected={false} 
+                            onClick={handleAddToBet}
+                            disabled={currentBet + 100 > gameState.money}
+                          />
+                          
+                          {/* All In Button */}
+                          <div className="ml-2">
+                            <Button 
+                              onClick={handleAllIn}
+                              variant="danger"
+                              disabled={gameState.money === 0 || currentBet === gameState.money}
+                              className="px-3 py-2 text-xs"
+                            >
+                              🔥 All In
+                            </Button>
+                          </div>
+                          
+                          {/* Place Bet Button */}
+                          <div className="ml-2">
+                            <Button 
+                              onClick={handlePlaceBet}
+                              variant="primary"
+                              disabled={currentBet === 0}
+                              className="px-4 py-2 text-sm"
+                            >
+                              💰 Bet
+                            </Button>
+                          </div>
                         </div>
                         
                         {/* Tray label */}
                         <div className="text-center mt-2">
-                          <div className="text-xs text-yellow-400/60 font-serif tracking-wider">SELECT CHIP</div>
+                          <div className="text-xs text-yellow-400/60 font-serif tracking-wider">ADD TO BET</div>
                         </div>
                       </div>
                       
