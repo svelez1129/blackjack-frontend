@@ -9,6 +9,7 @@ interface PlayerHandProps {
   isActive?: boolean
   bet?: number
   totalHands?: number
+  showScore?: boolean // New prop to control score visibility
 }
 
 export function PlayerHand({ 
@@ -18,7 +19,8 @@ export function PlayerHand({
   handNumber,
   isActive = false,
   bet,
-  totalHands = 1
+  totalHands = 1,
+  showScore = false
 }: PlayerHandProps) {
   // Dynamic card size based on number of hands
   const getCardSize = (totalHands: number): 'tiny' | 'small' | 'normal' => {
@@ -75,22 +77,16 @@ export function PlayerHand({
         )}
       </div>
       
-      <div className="flex justify-center gap-4 mt-3">
-        {score && (
+      {/* Only show score when explicitly requested (during active play) */}
+      {showScore && score && (
+        <div className="flex justify-center mt-3">
           <div className={`bg-green-900/50 rounded-lg px-3 py-1 border border-yellow-400/30`}>
             <p className={`${totalHands >= 4 ? 'text-xs' : totalHands >= 2 ? 'text-sm' : 'text-base'} font-semibold text-gray-200`}>
               Score: <span className="text-yellow-400 font-bold">{score}</span>
             </p>
           </div>
-        )}
-        {bet && (
-          <div className={`bg-green-900/50 rounded-lg px-3 py-1 border border-yellow-400/30`}>
-            <p className={`${totalHands >= 4 ? 'text-xs' : totalHands >= 2 ? 'text-sm' : 'text-base'} font-semibold text-gray-200`}>
-              Bet: <span className="text-green-400 font-bold">${bet}</span>
-            </p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

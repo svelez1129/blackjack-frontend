@@ -252,6 +252,7 @@ export default function PlayPage() {
               dealingSequence={gameState.dealingSequences.player[0] || []}
               bet={gameState.bets[0]}
               totalHands={totalHands}
+              showScore={gameState.phase === 'playing' || gameState.phase === 'finished'}
             />
           </div>
         </div>
@@ -272,6 +273,7 @@ export default function PlayPage() {
                 isActive={index === gameState.currentHandIndex && gameState.phase === 'playing'}
                 bet={gameState.bets[index]}
                 totalHands={totalHands}
+                showScore={gameState.phase === 'playing' || gameState.phase === 'finished'}
               />
             </div>
           ))}
@@ -294,6 +296,7 @@ export default function PlayPage() {
                 isActive={0 === gameState.currentHandIndex && gameState.phase === 'playing'}
                 bet={gameState.bets[0]}
                 totalHands={totalHands}
+                showScore={gameState.phase === 'playing' || gameState.phase === 'finished'}
               />
             </div>
           </div>
@@ -311,6 +314,7 @@ export default function PlayPage() {
                     isActive={actualIndex === gameState.currentHandIndex && gameState.phase === 'playing'}
                     bet={gameState.bets[actualIndex]}
                     totalHands={totalHands}
+                    showScore={gameState.phase === 'playing' || gameState.phase === 'finished'}
                   />
                 </div>
               )
@@ -336,6 +340,7 @@ export default function PlayPage() {
                   isActive={index === gameState.currentHandIndex && gameState.phase === 'playing'}
                   bet={gameState.bets[index]}
                   totalHands={totalHands}
+                  showScore={gameState.phase === 'playing' || gameState.phase === 'finished'}
                 />
               </div>
             ))}
@@ -354,6 +359,7 @@ export default function PlayPage() {
                     isActive={actualIndex === gameState.currentHandIndex && gameState.phase === 'playing'}
                     bet={gameState.bets[actualIndex]}
                     totalHands={totalHands}
+                    showScore={gameState.phase === 'playing' || gameState.phase === 'finished'}
                   />
                 </div>
               )
@@ -364,13 +370,35 @@ export default function PlayPage() {
     }
   }
 
-  // Show loading screen while initializing
+  // Show luxury loading screen while initializing
   if (isLoading) {
     return (
-      <main className="h-screen bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white overflow-hidden flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4">🎲</div>
-          <div className="text-xl">Loading...</div>
+      <main className="h-screen bg-black text-white overflow-hidden flex items-center justify-center relative">
+        {/* Luxury casino background */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-radial from-gray-900/40 via-black/80 to-black"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-radial from-yellow-400/10 to-transparent rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="relative z-10 text-center">
+          {/* Casino loading animation */}
+          <div className="mb-8">
+            <div className="text-6xl mb-4 animate-spin">🎰</div>
+            <div className="flex justify-center gap-2 mb-4">
+              <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+              <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+          </div>
+          
+          <div className="text-2xl font-serif font-bold tracking-wider mb-2">
+            <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+              LOADING CASINO
+            </span>
+          </div>
+          <div className="text-gray-400 text-sm tracking-widest uppercase">
+            Preparing your luxury experience...
+          </div>
         </div>
       </main>
     )
@@ -598,21 +626,16 @@ export default function PlayPage() {
 
                 {/* Betting Area - luxury casino style */}
                 {gameState.phase === 'betting' && (
-                  <div className="text-center">
-                    <div className="mb-6">
-                      <p className="text-2xl font-serif text-yellow-400 tracking-wider">Place Your Bet</p>
-                      <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto mt-3"></div>
-                      <p className="text-sm text-gray-400 mt-2 tracking-wide">Select a chip value to begin</p>
-                    </div>
+                  <div className="text-center mt-30">
                     
                     {/* Compact chip tray layout */}
                     <div className="relative">
                       {/* Chip tray background */}
-                      <div className="inline-block bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-xl p-3 border border-yellow-400/30 shadow-xl">
+                      <div className="inline-block bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-xl px-8 py-4 border border-yellow-400/30 shadow-xl">
                         <div className="absolute inset-1 bg-gradient-to-br from-gray-700/20 via-transparent to-gray-900/30 rounded-lg"></div>
                         
-                        {/* Compact chip layout */}
-                        <div className="relative flex gap-3 justify-center items-center">
+                        {/* Wider chip layout */}
+                        <div className="relative flex gap-6 justify-center items-center">
                           <Chip value={10} isSelected={false} onClick={handlePlaceBet} />
                           <Chip value={25} isSelected={false} onClick={handlePlaceBet} />
                           <Chip value={50} isSelected={false} onClick={handlePlaceBet} />

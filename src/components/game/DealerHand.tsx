@@ -11,7 +11,7 @@ interface DealerHandProps {
 export function DealerHand({ cards, hideSecondCard = true, score, dealingSequence = [] }: DealerHandProps) {
   return (
     <div className="text-center">
-      <h2 className="text-xl font-serif font-bold mb-4 text-yellow-400 tracking-wider">Dealer Hand</h2>
+      <div className="mb-12"></div> {/* Larger spacing where title was */}
       <div className="flex gap-3 justify-center mb-2">
         {cards.length > 0 ? (
           cards.map((card, index) => (
