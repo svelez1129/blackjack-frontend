@@ -13,7 +13,7 @@ export function GameResults({ results, bets, totalWinnings, totalHands, money }:
     switch (result) {
       case 'win':
       case 'blackjack':
-        return 'text-green-400'
+        return 'text-emerald-400'
       case 'lose':
         return 'text-red-400'
       case 'push':
@@ -55,7 +55,7 @@ export function GameResults({ results, bets, totalWinnings, totalHands, money }:
   }
 
   const getTotalResultColor = () => {
-    if (totalWinnings > 0) return 'text-green-400'
+    if (totalWinnings > 0) return 'text-emerald-400'
     if (totalWinnings < 0) return 'text-red-400'
     return 'text-yellow-400'
   }

@@ -18,9 +18,9 @@ export function Button({
   const baseStyles = "px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wide transition-all duration-200 min-w-[100px] shadow-lg"
   
   const variants = {
-    primary: "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white",
-    secondary: "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black",
-    danger: "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+    primary: "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white",
+    secondary: "bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black",
+    danger: "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
   }
   
   const disabledStyles = "opacity-50 cursor-not-allowed"

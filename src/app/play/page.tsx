@@ -228,7 +228,7 @@ export default function PlayPage() {
   // Show loading screen while initializing
   if (isLoading) {
     return (
-      <main className="h-screen bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-hidden flex items-center justify-center">
+      <main className="h-screen bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white overflow-hidden flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4">🎲</div>
           <div className="text-xl">Loading...</div>
@@ -238,12 +238,12 @@ export default function PlayPage() {
   }
 
   return (
-    <main className="h-screen bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-hidden">
+    <main className="h-screen bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white overflow-hidden">
       <BackgroundMusic />
 
       {/* Welcome Back Message - ADD THIS */}
       {showWelcomeBack && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">
           Welcome back! Your progress has been restored.
         </div>
       )}
@@ -251,7 +251,7 @@ export default function PlayPage() {
         {/* Header with money */}
         <div className="flex justify-end mb-8">
           <div className="text-right">
-            <p className="text-xl font-bold">Money: <span className="text-green-400">${gameState.money}</span></p>
+            <p className="text-xl font-bold">Money: <span className="text-yellow-400">${gameState.money}</span></p>
           </div>
         </div>
                 

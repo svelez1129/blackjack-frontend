@@ -9,9 +9,9 @@ interface ChipProps {
 export function Chip({ value, isSelected = false, onClick }: ChipProps) {
   const chipColors = {
     10: "bg-gradient-to-br from-red-500 to-red-700",
-    25: "bg-gradient-to-br from-green-500 to-green-700", 
-    50: "bg-gradient-to-br from-blue-500 to-blue-700",
-    100: "bg-gradient-to-br from-purple-500 to-purple-700"
+    25: "bg-gradient-to-br from-emerald-500 to-emerald-700", 
+    50: "bg-gradient-to-br from-yellow-500 to-orange-500",
+    100: "bg-gradient-to-br from-amber-600 to-yellow-700"
   }
 
   const selectedStyle = isSelected ? "ring-4 ring-yellow-400 scale-110" : ""
