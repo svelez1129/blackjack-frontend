@@ -105,3 +105,37 @@ body {
   animation: chip-place 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
+/* Button press animations */
+@keyframes button-press {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    transform: scale(0.98);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.animate-button-press {
+  animation: button-press 0.2s ease-in-out;
+}
+
+/* Luxury button glow */
+@keyframes button-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+  }
+}
+
+.animate-button-glow {
+  animation: button-glow 2s ease-in-out infinite;
+}
+
