@@ -9,10 +9,16 @@ import { BlackjackEngine } from '@/lib/blackjack/engine'
 import { useState, useEffect } from 'react'
 import { GameResults } from '@/components/game/GameResults'
 import { BackgroundMusic } from '@/components/ui/BackgroundMusic'
+import { GameStorage } from '@/lib/storage'
 
 export default function PlayPage() {
-  const [engine] = useState(() => new BlackjackEngine(1000))
+  const [engine] = useState(() => {
+    const gameEngine = new BlackjackEngine(1000, true) // Enable auto-save
+    gameEngine.enableSaving()
+    return gameEngine
+  })
   const [gameState, setGameState] = useState(engine.getState())
+  const [showWelcomeBack, setShowWelcomeBack] = useState(false)
 
   useEffect(() => {
     // Set up callback for engine to trigger UI updates
@@ -20,6 +26,15 @@ export default function PlayPage() {
       setGameState(engine.getState())
     })
   }, [engine])
+
+  // Check for saved progress and show welcome message
+  useEffect(() => {
+    if (GameStorage.hasGuestProgress()) {
+      setShowWelcomeBack(true)
+      // Hide welcome message after 3 seconds
+      setTimeout(() => setShowWelcomeBack(false), 3000)
+    }
+  }, [])
 
   // Auto-reset after showing results
   useEffect(() => {
@@ -63,7 +78,7 @@ export default function PlayPage() {
   }
 
   const handleNewGame = () => {
-    engine.newGame()
+    engine.resetProgress()
     updateGameState()
   }
 
@@ -200,6 +215,13 @@ export default function PlayPage() {
   return (
     <main className="h-screen bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-hidden">
       <BackgroundMusic />
+
+      {/* Welcome Back Message - ADD THIS */}
+      {showWelcomeBack && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">
+          Welcome back! Your progress has been restored.
+        </div>
+      )}
       <div className="container mx-auto px-4 py-6 h-full flex flex-col">
         {/* Header with money */}
         <div className="flex justify-end mb-8">

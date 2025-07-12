@@ -2,6 +2,8 @@ import type { Card } from '@/types/card'
 import { createSixDeckShoe, dealCard } from './deck'
 import { calculateHandScore, isBlackjack, isBust } from './scoring'
 import { canSplit } from '@/types/game'
+import { GameStorage } from '../storage'
+import { th } from 'framer-motion/client'
 
 export type GamePhase = 'betting' | 'dealing' | 'playing' | 'dealer' | 'finished'
 export type GameResult = 'win' | 'lose' | 'push' | 'blackjack'
@@ -31,7 +33,9 @@ export class BlackjackEngine {
   private state: GameState
   private onStateUpdate?: () => void
 
-  constructor(initialMoney: number = 1000) {
+  constructor(initialMoney: number = 1000, enableAutoSave: boolean = false) {
+    const savedProgress = enableAutoSave ? GameStorage.loadGuestProgress() : null
+    const startingMoney = savedProgress ? savedProgress.money : initialMoney
     this.state = {
       playerHands: [[]],
       dealerHand: [],
@@ -41,7 +45,7 @@ export class BlackjackEngine {
       dealerScore: 0,
       dealerVisibleScore: 0,
       bets: [25],
-      money: initialMoney,
+      money: startingMoney,
       phase: 'betting',
       totalWinnings: 0,
       isDealerSecondCardHidden: true,
@@ -50,7 +54,26 @@ export class BlackjackEngine {
         dealer: []
       }
     }
+
+    this.enableAutoSave = enableAutoSave
   }
+
+  // Add this property
+    private enableAutoSave: boolean = false
+
+    // Add this method
+    enableSaving(): void {
+        this.enableAutoSave = true
+    }
+
+    // Add this method
+    resetProgress(): void {
+        if (this.enableAutoSave) {
+            GameStorage.clearGuestProgress()
+        }
+        this.state.money = 1000
+        this.newGame()
+    }
 
   setStateUpdateCallback(callback: () => void): void {
     this.onStateUpdate = callback
@@ -67,6 +90,11 @@ export class BlackjackEngine {
     this.state.bets = [amount]
     this.state.money -= amount
     this.state.phase = 'dealing'
+
+    if (this.enableAutoSave) {
+      GameStorage.saveGuestProgress(this.state.money)
+    }
+    
     this.dealInitialCards()
   }
 
@@ -152,6 +180,10 @@ export class BlackjackEngine {
     this.state.money -= this.state.bets[handIndex]
     this.state.bets[handIndex] *= 2
 
+    if (this.enableAutoSave) {
+      GameStorage.saveGuestProgress(this.state.money)
+    }
+
     // Hit once and move to next hand
     this.hit()
     if (this.state.phase === 'playing') {
@@ -175,6 +207,9 @@ split(): void {
   // Deduct money for split bet
   this.state.money -= this.state.bets[handIndex]
 
+  if (this.enableAutoSave) {
+    GameStorage.saveGuestProgress(this.state.money)
+  }
   // Split the hand
   const [card1, card2] = currentHand
   this.state.playerHands[handIndex] = [card1]
@@ -339,6 +374,9 @@ split(): void {
     // Store total winnings for display
     this.state.totalWinnings = totalWinnings
 
+    if (this.enableAutoSave) {
+      GameStorage.saveGuestProgress(this.state.money)
+    }
     this.onStateUpdate?.()
   }
 
