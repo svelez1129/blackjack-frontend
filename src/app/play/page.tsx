@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react'
 import { GameResults } from '@/components/game/GameResults'
 import { BackgroundMusic } from '@/components/ui/BackgroundMusic'
 import { GameStorage } from '@/lib/storage'
+import { DailyRewards } from '@/components/rewards/DailyRewards'
 
 export default function PlayPage() {
   const [engine] = useState(() => {
@@ -92,6 +93,12 @@ export default function PlayPage() {
 
   const handleNewGame = () => {
     engine.resetProgress()
+    updateGameState()
+  }
+
+  const handleRewardClaimed = (amount: number) => {
+    // Add reward money to the game engine
+    engine.addMoney(amount)
     updateGameState()
   }
 
@@ -240,6 +247,7 @@ export default function PlayPage() {
   return (
     <main className="h-screen bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white overflow-hidden">
       <BackgroundMusic />
+      <DailyRewards onRewardClaimed={handleRewardClaimed} />
 
       {/* Welcome Back Message - ADD THIS */}
       {showWelcomeBack && (

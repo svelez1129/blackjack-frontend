@@ -107,6 +107,14 @@ export class BlackjackEngine {
     return { ...this.state }
   }
 
+  addMoney(amount: number): void {
+    this.state.money += amount
+    if (this.enableAutoSave) {
+      this.saveGameState()
+    }
+    this.onStateUpdate?.()
+  }
+
   placeBet(amount: number): void {
     if (this.state.phase !== 'betting') return
     if (amount > this.state.money) return

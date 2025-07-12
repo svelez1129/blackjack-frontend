@@ -79,7 +79,7 @@ export default function Home() {
               <div className="text-3xl mb-2">💰</div>
               <div className="text-green-100">
                 <div className="font-semibold">Free $1,000</div>
-                <div className="text-sm opacity-80">Start playing immediately</div>
+                <div className="text-sm opacity-80">+ Daily bonus rewards</div>
               </div>
             </div>
             <div className="text-center">
