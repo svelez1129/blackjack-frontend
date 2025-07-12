@@ -13,12 +13,34 @@ import { GameStorage } from '@/lib/storage'
 
 export default function PlayPage() {
   const [engine] = useState(() => {
-    const gameEngine = new BlackjackEngine(1000, true) // Enable auto-save
-    gameEngine.enableSaving()
+    const gameEngine = new BlackjackEngine(1000, false) // Start without auto-save
     return gameEngine
   })
   const [gameState, setGameState] = useState(engine.getState())
   const [showWelcomeBack, setShowWelcomeBack] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Client-side initialization after hydration
+  useEffect(() => {
+    // Enable auto-save and load saved progress
+    engine.enableSaving()
+    
+    // Check for saved progress and restore it
+    const savedProgress = GameStorage.loadGuestProgress()
+    
+    if (savedProgress) {
+      // Restore saved state
+      engine.restoreFromSave(savedProgress)
+      const newState = engine.getState()
+      setGameState(newState)
+      setShowWelcomeBack(true)
+      // Hide welcome message after 3 seconds
+      setTimeout(() => setShowWelcomeBack(false), 3000)
+    }
+    
+    // Mark loading as complete
+    setIsLoading(false)
+  }, [engine])
 
   useEffect(() => {
     // Set up callback for engine to trigger UI updates
@@ -26,15 +48,6 @@ export default function PlayPage() {
       setGameState(engine.getState())
     })
   }, [engine])
-
-  // Check for saved progress and show welcome message
-  useEffect(() => {
-    if (GameStorage.hasGuestProgress()) {
-      setShowWelcomeBack(true)
-      // Hide welcome message after 3 seconds
-      setTimeout(() => setShowWelcomeBack(false), 3000)
-    }
-  }, [])
 
   // Auto-reset after showing results
   useEffect(() => {
@@ -212,6 +225,18 @@ export default function PlayPage() {
     }
   }
 
+  // Show loading screen while initializing
+  if (isLoading) {
+    return (
+      <main className="h-screen bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-hidden flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4">🎲</div>
+          <div className="text-xl">Loading...</div>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="h-screen bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-hidden">
       <BackgroundMusic />
@@ -243,7 +268,6 @@ export default function PlayPage() {
           {gameState.phase === 'finished' && gameState.results && gameState.messages && gameState.money > 0 ? (
             <GameResults
               results={gameState.results}
-              messages={gameState.messages}
               bets={gameState.bets}
               totalWinnings={gameState.totalWinnings || 0}
               totalHands={gameState.playerHands.length}
@@ -254,7 +278,7 @@ export default function PlayPage() {
             <div className="text-center">
               <div className="bg-gradient-to-r from-red-800 to-red-700 rounded-lg p-6 border border-red-600">
                 <h2 className="text-3xl font-bold mb-4 text-red-400">GAME OVER</h2>
-                <p className="text-xl mb-4">You're out of money!</p>
+                <p className="text-xl mb-4">You&apos;re out of money!</p>
                 <Button onClick={handleNewGame} variant="primary" className="px-8 py-3">
                   Start Over ($1000)
                 </Button>

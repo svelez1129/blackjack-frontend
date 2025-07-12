@@ -2,14 +2,13 @@
 
 interface GameResultsProps {
   results: string[]
-  messages: string[]
   bets: number[]
   totalWinnings: number
   totalHands: number
   money: number  // Add money prop to check if player can bet
 }
 
-export function GameResults({ results, messages, bets, totalWinnings, totalHands, money }: GameResultsProps) {
+export function GameResults({ results, bets, totalWinnings, totalHands, money }: GameResultsProps) {
   const getResultColor = (result: string) => {
     switch (result) {
       case 'win':
