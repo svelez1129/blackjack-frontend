@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { getAchievementsService, type Achievement, type GameStats } from '@/lib/achievements'
+import { playAchievement } from '@/lib/sounds'
 
 export function useAchievements() {
   const [achievements, setAchievements] = useState<Achievement[]>([])
@@ -35,6 +36,8 @@ export function useAchievements() {
         // If newly unlocked, add to recent unlocks
         if (updatedAchievement.unlocked && updatedAchievement.current >= updatedAchievement.target) {
           setRecentUnlocks(prev => [updatedAchievement, ...prev])
+          // Play achievement unlock sound
+          playAchievement()
         }
       }
       return updatedAchievement
@@ -54,6 +57,8 @@ export function useAchievements() {
       // Add newly unlocked to recent unlocks
       if (newlyUnlocked.length > 0) {
         setRecentUnlocks(prev => [...newlyUnlocked, ...prev])
+        // Play achievement unlock sound for each newly unlocked achievement
+        newlyUnlocked.forEach(() => playAchievement())
       }
       
       return newlyUnlocked

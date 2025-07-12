@@ -14,6 +14,7 @@ import { DailyRewards } from '@/components/rewards/DailyRewards'
 import { AchievementsButton } from '@/components/achievements/AchievementsButton'
 import { AchievementNotification } from '@/components/achievements/AchievementNotification'
 import { useAchievements } from '@/hooks/useAchievements'
+import { playChipPlace, playButtonClick, playWin, playBlackjack, playLose } from '@/lib/sounds'
 
 export default function PlayPage() {
   const [engine] = useState(() => {
@@ -91,6 +92,13 @@ export default function PlayPage() {
       stats.totalWinnings += winAmount
       stats.biggestWin = Math.max(stats.biggestWin, winAmount)
 
+      // Play win sounds
+      if (result === 'blackjack') {
+        playBlackjack()
+      } else {
+        playWin()
+      }
+
       // Achievement updates
       updates['hands_10'] = 1
       updates['hands_50'] = 1  
@@ -120,6 +128,9 @@ export default function PlayPage() {
       stats.currentLossStreak += 1
       stats.totalLosses += bet
       stats.biggestLoss = Math.max(stats.biggestLoss, bet)
+      
+      // Play lose sound
+      playLose()
       
       // Basic milestone tracking
       updates['hands_10'] = 1
@@ -178,11 +189,15 @@ export default function PlayPage() {
     // Don't allow betting more than player has
     if (currentBet + amount <= gameState.money) {
       setCurrentBet(prev => prev + amount)
+      // Play chip sound when adding chips to bet
+      playChipPlace()
     }
   }
 
   const handleAllIn = () => {
     setCurrentBet(gameState.money)
+    // Play chip sound for all-in
+    playChipPlace()
   }
 
   const handleClearBet = () => {
@@ -201,6 +216,7 @@ export default function PlayPage() {
   }
 
   const handleHit = async () => {
+    playButtonClick()
     engine.hit()
     updateGameState()
     
@@ -210,6 +226,7 @@ export default function PlayPage() {
   }
 
   const handleStand = async () => {
+    playButtonClick()
     engine.stand()
     updateGameState()
     
@@ -219,6 +236,7 @@ export default function PlayPage() {
   }
 
   const handleDouble = async () => {
+    playButtonClick()
     engine.double()
     updateGameState()
     
@@ -231,6 +249,7 @@ export default function PlayPage() {
   }
 
   const handleSplit = async () => {
+    playButtonClick()
     engine.split()
     updateGameState()
     

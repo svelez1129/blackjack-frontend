@@ -14,7 +14,12 @@ class SoundManager {
       'card-deal': '/sounds/card-deal.ogg',
       'card-flip': '/sounds/card-flip.ogg',
       'card-shuffle': '/sounds/card-shuffle.ogg',
-      'chip-place': '/sounds/chip-place.ogg'
+      'chip-place': '/sounds/chip-place.ogg',
+      'button-click': '/sounds/button-click.ogg',
+      'win': '/sounds/win.ogg',
+      'blackjack': '/sounds/blackjackwin.mp3',
+      'lose': '/sounds/lose.ogg',
+      'achievement': '/sounds/achievement-unlocked.mp3'
     }
 
     Object.entries(soundFiles).forEach(([name, path]) => {
@@ -65,3 +70,8 @@ export const playCardDeal = () => soundManager.play('card-deal', 0.4)
 export const playCardFlip = () => soundManager.play('card-flip', 0.4)
 export const playCardShuffle = () => soundManager.play('card-shuffle', 0.3)
 export const playChipPlace = () => soundManager.play('chip-place', 0.5)
+export const playButtonClick = () => soundManager.play('button-click', 0.3)
+export const playWin = () => soundManager.play('win', 0.6)
+export const playBlackjack = () => soundManager.play('blackjack', 0.7)
+export const playLose = () => soundManager.play('lose', 0.4)
+export const playAchievement = () => soundManager.play('achievement', 0.8)
