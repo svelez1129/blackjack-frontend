@@ -6,11 +6,14 @@ import { ActionButtons } from '@/components/game/ActionButtons'
 import { Chip } from '@/components/ui/Chip'
 import { Button} from '@/components/ui/Button'
 import { BlackjackEngine } from '@/lib/blackjack/engine'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { GameResults } from '@/components/game/GameResults'
 import { BackgroundMusic } from '@/components/ui/BackgroundMusic'
 import { GameStorage } from '@/lib/storage'
 import { DailyRewards } from '@/components/rewards/DailyRewards'
+import { AchievementsButton } from '@/components/achievements/AchievementsButton'
+import { AchievementNotification } from '@/components/achievements/AchievementNotification'
+import { useAchievements } from '@/hooks/useAchievements'
 
 export default function PlayPage() {
   const [engine] = useState(() => {
@@ -20,6 +23,15 @@ export default function PlayPage() {
   const [gameState, setGameState] = useState(engine.getState())
   const [showWelcomeBack, setShowWelcomeBack] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  
+  // Achievements
+  const { 
+    recentUnlocks, 
+    clearRecentUnlock, 
+    checkMultipleProgress,
+    getGameStats,
+    saveGameStats
+  } = useAchievements()
 
   // Client-side initialization after hydration
   useEffect(() => {
@@ -50,9 +62,104 @@ export default function PlayPage() {
     })
   }, [engine])
 
+  // Achievement tracking functions
+  const trackAchievements = useCallback(async (updates: Record<string, number>) => {
+    try {
+      await checkMultipleProgress(updates)
+    } catch (error) {
+      console.error('Failed to track achievements:', error)
+    }
+  }, [checkMultipleProgress])
+
+  const trackHandResult = useCallback(async (result: string, bet: number, playerHands: unknown[]) => {
+    const stats = getGameStats()
+    const updates: Record<string, number> = {}
+
+    // Update basic stats
+    stats.handsPlayed += 1
+    stats.lastPlayDate = new Date()
+
+    // Track hand results
+    if (result === 'win' || result === 'blackjack') {
+      stats.handsWon += 1
+      stats.currentWinStreak += 1
+      stats.currentLossStreak = 0
+      stats.maxWinStreak = Math.max(stats.maxWinStreak, stats.currentWinStreak)
+      
+      const winAmount = result === 'blackjack' ? Math.floor(bet * 1.5) : bet
+      stats.totalWinnings += winAmount
+      stats.biggestWin = Math.max(stats.biggestWin, winAmount)
+
+      // Achievement updates
+      updates['hands_10'] = 1
+      updates['hands_50'] = 1  
+      updates['hands_100'] = 1
+      updates['hands_500'] = 1
+      updates['win_streak_3'] = stats.currentWinStreak
+      updates['win_streak_5'] = stats.currentWinStreak
+      updates['win_streak_10'] = stats.currentWinStreak
+      
+      if (result === 'blackjack') {
+        stats.blackjacksHit += 1
+        updates['first_blackjack'] = 1
+        updates['blackjacks_5'] = 1
+        updates['blackjacks_10'] = 1
+      }
+
+      if (winAmount >= 1000) {
+        updates['win_1000'] = winAmount
+      }
+
+      updates['total_winnings_5000'] = stats.totalWinnings
+      updates['millionaire'] = gameState.money + winAmount
+
+    } else if (result === 'lose') {
+      stats.handsLost += 1
+      stats.currentWinStreak = 0
+      stats.currentLossStreak += 1
+      stats.totalLosses += bet
+      stats.biggestLoss = Math.max(stats.biggestLoss, bet)
+      
+      // Basic milestone tracking
+      updates['hands_10'] = 1
+      updates['hands_50'] = 1
+      updates['hands_100'] = 1  
+      updates['hands_500'] = 1
+    } else if (result === 'push') {
+      stats.handsPushed += 1
+      
+      // Basic milestone tracking
+      updates['hands_10'] = 1
+      updates['hands_50'] = 1
+      updates['hands_100'] = 1
+      updates['hands_500'] = 1
+    }
+
+    // Check for special conditions
+    if (Array.isArray(playerHands[0]) && playerHands[0].length === 3) {
+      // Skip complex card value calculation for now - would need proper typing
+      // updates['perfect_21'] = 1
+    }
+
+    // Check for comeback
+    if (gameState.money < 100 && result === 'win') {
+      updates['comeback_king'] = 1
+    }
+
+    saveGameStats(stats)
+    await trackAchievements(updates)
+  }, [getGameStats, saveGameStats, trackAchievements, gameState.money])
+
   // Auto-reset after showing results
   useEffect(() => {
     if (gameState.phase === 'finished' && gameState.money > 0) {
+      // Track results before resetting
+      if (gameState.results && gameState.bets) {
+        gameState.results.forEach((result) => {
+          trackHandResult(result, gameState.bets[0], gameState.playerHands)
+        })
+      }
+
       const timer = setTimeout(() => {
         engine.resetForNextRound()
         setGameState(engine.getState())
@@ -60,35 +167,60 @@ export default function PlayPage() {
 
       return () => clearTimeout(timer)
     }
-  }, [gameState.phase, gameState.money, engine])
+  }, [gameState.phase, gameState.money, gameState.results, gameState.bets, gameState.playerHands, engine, trackHandResult])
 
   const updateGameState = () => {
     setGameState(engine.getState())
   }
 
-  const handlePlaceBet = (amount: 10 | 25 | 50 | 100) => {
+  const handlePlaceBet = async (amount: 10 | 25 | 50 | 100) => {
     engine.placeBet(amount)
     updateGameState()
+    
+    // Track first hand achievement
+    await trackAchievements({ 'first_hand': 1 })
   }
 
-  const handleHit = () => {
+  const handleHit = async () => {
     engine.hit()
     updateGameState()
+    
+    const stats = getGameStats()
+    stats.timesHit += 1
+    saveGameStats(stats)
   }
 
-  const handleStand = () => {
+  const handleStand = async () => {
     engine.stand()
     updateGameState()
+    
+    const stats = getGameStats()
+    stats.timesStood += 1
+    saveGameStats(stats)
   }
 
-  const handleDouble = () => {
+  const handleDouble = async () => {
     engine.double()
     updateGameState()
+    
+    const stats = getGameStats()
+    stats.timesDoubled += 1
+    saveGameStats(stats)
+    
+    // Track first double achievement
+    await trackAchievements({ 'first_double': 1 })
   }
 
-  const handleSplit = () => {
+  const handleSplit = async () => {
     engine.split()
     updateGameState()
+    
+    const stats = getGameStats()
+    stats.timesSplit += 1
+    saveGameStats(stats)
+    
+    // Track first split achievement
+    await trackAchievements({ 'first_split': 1 })
   }
 
   const handleNewGame = () => {
@@ -248,6 +380,15 @@ export default function PlayPage() {
     <main className="h-screen bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white overflow-hidden">
       <BackgroundMusic />
       <DailyRewards onRewardClaimed={handleRewardClaimed} />
+      
+      {/* Achievement Notifications */}
+      {recentUnlocks.map((achievement) => (
+        <AchievementNotification
+          key={achievement.id}
+          achievement={achievement}
+          onDismiss={() => clearRecentUnlock(achievement.id)}
+        />
+      ))}
 
       {/* Welcome Back Message - ADD THIS */}
       {showWelcomeBack && (
@@ -256,8 +397,9 @@ export default function PlayPage() {
         </div>
       )}
       <div className="container mx-auto px-4 py-6 h-full flex flex-col">
-        {/* Header with money */}
-        <div className="flex justify-end mb-8">
+        {/* Header with money and achievements */}
+        <div className="flex justify-between items-center mb-8">
+          <AchievementsButton />
           <div className="text-right">
             <p className="text-xl font-bold">Money: <span className="text-yellow-400">${gameState.money}</span></p>
           </div>
