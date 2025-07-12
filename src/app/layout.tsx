@@ -13,12 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Free Blackjack Online - Play Instantly, No Signup Required",
-  description: "Play free blackjack online with $1,000 virtual money. No registration needed, instant play, authentic casino rules. Best free blackjack game online!",
-  keywords: "free blackjack, online blackjack, blackjack game, play blackjack free, no signup blackjack, casino game",
+  title: "BLACKJACK - Premium Casino Experience | Play Free with $1,000",
+  description: "Experience the thrill of high-stakes blackjack with our premium casino game. Start with $1,000, no registration required. Authentic rules, luxury interface, instant play.",
+  keywords: "premium blackjack, luxury casino, high stakes blackjack, VIP blackjack, free casino game, authentic blackjack",
   openGraph: {
-    title: "Free Blackjack Online - Play Now!",
-    description: "Play free blackjack instantly with $1,000 virtual money. No signup required!",
+    title: "BLACKJACK - Premium Casino Experience",
+    description: "Step into the world of high-stakes blackjack. $1,000 starting bankroll, luxury interface, authentic casino rules.",
     type: "website",
   },
 };

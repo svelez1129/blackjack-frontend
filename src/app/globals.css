@@ -46,3 +46,8 @@ body {
   animation: card-deal 1s ease-out;  /* Increased from 0.3s to 0.5s */
 }
 
+/* Custom gradients and effects for luxury casino theme */
+.bg-gradient-radial {
+  background-image: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
