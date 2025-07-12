@@ -7,10 +7,11 @@ interface CardProps {
   card: CardType
   isFlipped?: boolean
   dealingDelay?: number
-  size?: 'tiny' | 'small' | 'normal'  // Added tiny size
+  size?: 'tiny' | 'small' | 'normal'
+  isRevealing?: boolean // New prop for flip animation
 }
 
-export function Card({ card, isFlipped = false, dealingDelay = 0, size = 'normal' }: CardProps) {
+export function Card({ card, isFlipped = false, dealingDelay = 0, size = 'normal', isRevealing = false }: CardProps) {
   const [isVisible, setIsVisible] = useState(dealingDelay === 0)
   const cardColor = getCardColor(card.suit)
   
@@ -51,11 +52,22 @@ export function Card({ card, isFlipped = false, dealingDelay = 0, size = 'normal
     }
   }
   
-  // Show card back if flipped
+  // Show card back if flipped - luxury casino design
   if (isFlipped) {
     return (
-      <div className={`${sizeClasses[size]} bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg border border-slate-600 flex items-center justify-center animate-card-deal`}>
-        <span className={`text-slate-400 ${size === 'tiny' ? 'text-sm' : size === 'small' ? 'text-base' : 'text-lg'}`}>♣</span>
+      <div className={`${sizeClasses[size]} relative bg-gradient-to-br from-red-900 via-red-800 to-red-900 rounded-lg border-2 border-yellow-400/60 flex items-center justify-center ${isRevealing ? 'animate-card-flip' : 'animate-card-deal'} shadow-xl`}>
+        {/* Luxury card back pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-red-700/20 via-transparent to-red-900/20 rounded-lg"></div>
+        <div className="absolute inset-1 border border-yellow-400/30 rounded-md"></div>
+        
+        {/* Casino logo/pattern */}
+        <div className="relative flex flex-col items-center">
+          <span className={`text-yellow-400 ${size === 'tiny' ? 'text-xs' : size === 'small' ? 'text-sm' : 'text-lg'} font-bold mb-0.5`}>♠</span>
+          <span className={`text-yellow-400 ${size === 'tiny' ? 'text-xs' : size === 'small' ? 'text-sm' : 'text-lg'} font-bold`}>♦</span>
+        </div>
+        
+        {/* Subtle shine effect */}
+        <div className="absolute top-1 left-1 right-1 h-2 bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent rounded-t-lg"></div>
       </div>
     )
   }
@@ -69,23 +81,37 @@ export function Card({ card, isFlipped = false, dealingDelay = 0, size = 'normal
   }
   
   return (
-    <div className={`${sizeClasses[size]} bg-white rounded-lg border border-gray-300 shadow-lg flex flex-col justify-between ${size === 'tiny' ? 'p-1' : 'p-1.5'} animate-card-deal`}>
+    <div className={`${sizeClasses[size]} relative bg-gradient-to-br from-white via-gray-50 to-white rounded-lg border-2 border-gray-200 shadow-2xl flex flex-col justify-between ${size === 'tiny' ? 'p-1' : 'p-1.5'} animate-card-deal hover:shadow-yellow-400/20 transition-shadow duration-300`}>
+      {/* Premium card edge effect */}
+      <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-gray-100/50 via-transparent to-gray-200/30"></div>
+      
+      {/* Inner border for luxury feel */}
+      <div className="absolute inset-1 border border-gray-300/40 rounded-md"></div>
+      
       {/* Top-left corner */}
-      <div className={`${size === 'tiny' ? 'mr-8' : 'mr-16'} ${textSizeClasses[size].corner} font-bold ${cardColor === 'red' ? 'text-red-600' : 'text-black'}`}>
-        <div>{card.value}</div>
-        <div className={textSizeClasses[size].corner}>{suitSymbols[card.suit]}</div>
+      <div className={`relative z-10 ${size === 'tiny' ? 'mr-8' : 'mr-16'} ${textSizeClasses[size].corner} font-bold ${cardColor === 'red' ? 'text-red-600' : 'text-black'}`}>
+        <div className="font-serif font-black">{card.value}</div>
+        <div className={`${textSizeClasses[size].corner} font-normal`}>{suitSymbols[card.suit]}</div>
       </div>
       
-      {/* Center symbol */}
-      <div className={`${textSizeClasses[size].suit} self-center ${cardColor === 'red' ? 'text-red-600' : 'text-black'}`}>
+      {/* Center symbol with enhanced styling */}
+      <div className={`relative z-10 ${textSizeClasses[size].suit} self-center font-bold ${cardColor === 'red' ? 'text-red-600 drop-shadow-sm' : 'text-black drop-shadow-sm'}`}>
         {suitSymbols[card.suit]}
       </div>
       
       {/* Bottom-right corner (rotated) */}
-      <div className={`${textSizeClasses[size].corner} font-bold self-end rotate-180 ${cardColor === 'red' ? 'text-red-600' : 'text-black'}`}>
-        <div>{card.value}</div>
-        <div className={textSizeClasses[size].corner}>{suitSymbols[card.suit]}</div>
+      <div className={`relative z-10 ${textSizeClasses[size].corner} font-bold self-end rotate-180 ${cardColor === 'red' ? 'text-red-600' : 'text-black'}`}>
+        <div className="font-serif font-black">{card.value}</div>
+        <div className={`${textSizeClasses[size].corner} font-normal`}>{suitSymbols[card.suit]}</div>
       </div>
+      
+      {/* Subtle highlight for face cards */}
+      {(card.value === 'J' || card.value === 'Q' || card.value === 'K' || card.value === 'A') && (
+        <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/5 via-transparent to-yellow-400/10 rounded-lg"></div>
+      )}
+      
+      {/* Card shine effect */}
+      <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-t-lg"></div>
     </div>
   )
 }

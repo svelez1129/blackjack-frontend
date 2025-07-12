@@ -11,7 +11,7 @@ interface DealerHandProps {
 export function DealerHand({ cards, hideSecondCard = true, score, dealingSequence = [] }: DealerHandProps) {
   return (
     <div className="text-center">
-      <h2 className="text-xl font-bold mb-3">Dealer Hand</h2>
+      <h2 className="text-xl font-serif font-bold mb-4 text-yellow-400 tracking-wider">Dealer Hand</h2>
       <div className="flex gap-3 justify-center mb-2">
         {cards.length > 0 ? (
           cards.map((card, index) => (
@@ -23,19 +23,23 @@ export function DealerHand({ cards, hideSecondCard = true, score, dealingSequenc
             />
           ))
         ) : (
-          // Show placeholder cards when hand is empty
+          // Show luxury placeholder cards when hand is empty
           <>
-            <div className="w-20 h-33 bg-gradient-to-br from-gray-600 to-gray-800 rounded-lg border-2 border-dashed border-gray-400 flex items-center justify-center opacity-50">
-              <span className="text-gray-400 text-xs">Card 1</span>
+            <div className="w-20 h-33 bg-gradient-to-br from-green-800/40 via-green-700/30 to-green-800/40 rounded-lg border-2 border-dashed border-yellow-400/40 flex items-center justify-center opacity-60 backdrop-blur-sm">
+              <span className="text-yellow-400/70 text-sm font-serif">♣</span>
             </div>
-            <div className="w-20 h-33 bg-gradient-to-br from-gray-600 to-gray-800 rounded-lg border-2 border-dashed border-gray-400 flex items-center justify-center opacity-50">
-              <span className="text-gray-400 text-xs">Card 2</span>
+            <div className="w-20 h-33 bg-gradient-to-br from-green-800/40 via-green-700/30 to-green-800/40 rounded-lg border-2 border-dashed border-yellow-400/40 flex items-center justify-center opacity-60 backdrop-blur-sm">
+              <span className="text-yellow-400/70 text-sm font-serif">♦</span>
             </div>
           </>
         )}
       </div>
       {score && !hideSecondCard && (
-        <p className="text-lg font-semibold">Score: <span className="text-red-400">{score}</span></p>
+        <div className="inline-block bg-green-900/50 rounded-lg px-4 py-2 border border-yellow-400/30 mt-3">
+          <p className="text-lg font-semibold text-gray-200">
+            Score: <span className="text-red-400 font-bold">{score}</span>
+          </p>
+        </div>
       )}
     </div>
   )

@@ -41,12 +41,12 @@ export function PlayerHand({
   
   return (
     <div className="text-center">
-      <div className="flex items-center justify-center gap-2 mb-1">
-        <h2 className={`${totalHands >= 4 ? 'text-sm' : totalHands >= 2 ? 'text-base' : 'text-xl'} font-bold`}>
+      <div className="flex items-center justify-center gap-2 mb-2">
+        <h2 className={`${totalHands >= 4 ? 'text-sm' : totalHands >= 2 ? 'text-base' : 'text-xl'} font-serif font-bold text-yellow-400 tracking-wide`}>
           {handNumber ? `Hand ${handNumber}` : 'Your Hand'}
         </h2>
         {isActive && (
-          <span className="text-xs bg-yellow-400 text-black px-1 py-0.5 rounded font-bold">
+          <span className="text-xs bg-gradient-to-r from-yellow-400 to-orange-400 text-black px-2 py-1 rounded-full font-bold shadow-lg animate-pulse">
             ACTIVE
           </span>
         )}
@@ -63,28 +63,32 @@ export function PlayerHand({
             />
           ))
         ) : (
-          // Show placeholder cards when hand is empty
+          // Show luxury placeholder cards when hand is empty
           <>
-            <div className={`${cardSize === 'tiny' ? 'w-12 h-20' : cardSize === 'small' ? 'w-16 h-26' : 'w-20 h-33'} bg-gradient-to-br from-gray-600 to-gray-800 rounded-lg border-2 border-dashed border-gray-400 flex items-center justify-center opacity-50`}>
-              <span className="text-gray-400 text-xs">1</span>
+            <div className={`${cardSize === 'tiny' ? 'w-12 h-20' : cardSize === 'small' ? 'w-16 h-26' : 'w-20 h-33'} bg-gradient-to-br from-green-800/40 via-green-700/30 to-green-800/40 rounded-lg border-2 border-dashed border-yellow-400/40 flex items-center justify-center opacity-60 backdrop-blur-sm`}>
+              <span className="text-yellow-400/70 text-xs font-serif">♠</span>
             </div>
-            <div className={`${cardSize === 'tiny' ? 'w-12 h-20' : cardSize === 'small' ? 'w-16 h-26' : 'w-20 h-33'} bg-gradient-to-br from-gray-600 to-gray-800 rounded-lg border-2 border-dashed border-gray-400 flex items-center justify-center opacity-50`}>
-              <span className="text-gray-400 text-xs">2</span>
+            <div className={`${cardSize === 'tiny' ? 'w-12 h-20' : cardSize === 'small' ? 'w-16 h-26' : 'w-20 h-33'} bg-gradient-to-br from-green-800/40 via-green-700/30 to-green-800/40 rounded-lg border-2 border-dashed border-yellow-400/40 flex items-center justify-center opacity-60 backdrop-blur-sm`}>
+              <span className="text-yellow-400/70 text-xs font-serif">♥</span>
             </div>
           </>
         )}
       </div>
       
-      <div className="flex justify-center gap-2">
+      <div className="flex justify-center gap-4 mt-3">
         {score && (
-          <p className={`${totalHands >= 4 ? 'text-xs' : totalHands >= 2 ? 'text-sm' : 'text-lg'} font-semibold`}>
-            Score: <span className="text-yellow-400">{score}</span>
-          </p>
+          <div className={`bg-green-900/50 rounded-lg px-3 py-1 border border-yellow-400/30`}>
+            <p className={`${totalHands >= 4 ? 'text-xs' : totalHands >= 2 ? 'text-sm' : 'text-base'} font-semibold text-gray-200`}>
+              Score: <span className="text-yellow-400 font-bold">{score}</span>
+            </p>
+          </div>
         )}
         {bet && (
-          <p className={`${totalHands >= 4 ? 'text-xs' : totalHands >= 2 ? 'text-sm' : 'text-lg'} font-semibold`}>
-            Bet: <span className="text-green-400">${bet}</span>
-          </p>
+          <div className={`bg-green-900/50 rounded-lg px-3 py-1 border border-yellow-400/30`}>
+            <p className={`${totalHands >= 4 ? 'text-xs' : totalHands >= 2 ? 'text-sm' : 'text-base'} font-semibold text-gray-200`}>
+              Bet: <span className="text-green-400 font-bold">${bet}</span>
+            </p>
+          </div>
         )}
       </div>
     </div>

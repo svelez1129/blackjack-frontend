@@ -377,7 +377,25 @@ export default function PlayPage() {
   }
 
   return (
-    <main className="h-screen bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white overflow-hidden">
+    <main className="h-screen bg-black text-white overflow-hidden relative">
+      {/* Luxury Casino Background */}
+      <div className="absolute inset-0">
+        {/* Dark casino atmosphere */}
+        <div className="absolute inset-0 bg-gradient-radial from-gray-900/40 via-black/80 to-black"></div>
+        
+        {/* Subtle casino room elements */}
+        <div className="absolute inset-0 opacity-10">
+          {/* Blurred casino lights */}
+          <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400 rounded-full blur-xl"></div>
+          <div className="absolute top-20 right-20 w-16 h-16 bg-red-500 rounded-full blur-xl"></div>
+          <div className="absolute bottom-20 left-16 w-24 h-24 bg-orange-400 rounded-full blur-xl"></div>
+          <div className="absolute bottom-10 right-10 w-12 h-12 bg-purple-500 rounded-full blur-xl"></div>
+        </div>
+        
+        {/* Spotlight on table area */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-gradient-radial from-yellow-400/15 via-yellow-400/5 to-transparent rounded-full blur-2xl"></div>
+      </div>
+
       <BackgroundMusic />
       <DailyRewards onRewardClaimed={handleRewardClaimed} />
       
@@ -390,98 +408,202 @@ export default function PlayPage() {
         />
       ))}
 
-      {/* Welcome Back Message - ADD THIS */}
+      {/* Welcome Back Message */}
       {showWelcomeBack && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">
-          Welcome back! Your progress has been restored.
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-lg shadow-xl border border-emerald-500 z-50 animate-bounce">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🎰</span>
+            Welcome back! Your progress has been restored.
+          </div>
         </div>
       )}
-      <div className="container mx-auto px-4 py-6 h-full flex flex-col">
-        {/* Header with money and achievements */}
-        <div className="flex justify-between items-center mb-8">
-          <AchievementsButton />
-          <div className="text-right">
-            <p className="text-xl font-bold">Money: <span className="text-yellow-400">${gameState.money}</span></p>
+
+      {/* Main Game Container */}
+      <div className="relative z-10 h-full flex flex-col">
+        
+        {/* Casino Header Bar */}
+        <div className="bg-gradient-to-r from-black via-gray-900 to-black border-b border-yellow-400/30 px-6 py-4">
+          <div className="flex justify-between items-center max-w-7xl mx-auto">
+            <AchievementsButton />
+            
+            {/* Casino Branding */}
+            <div className="text-center">
+              <div className="text-2xl font-serif font-bold tracking-widest">
+                <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                  BLACKJACK
+                </span>
+              </div>
+              <div className="text-xs text-gray-400 tracking-[0.2em] uppercase">
+                Premium Table
+              </div>
+            </div>
+            
+            {/* Money Display - Enhanced */}
+            <div className="text-right">
+              <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-2 rounded-lg border border-yellow-400/50">
+                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Balance</div>
+                <div className="text-xl font-bold">
+                  <span className="text-yellow-400">${gameState.money.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-                
-        <div className="flex-1 flex flex-col justify-between max-w-4xl mx-auto w-full">
-          {/* Dealer Hand */}
-          <DealerHand 
-            cards={gameState.dealerHand}
-            hideSecondCard={gameState.isDealerSecondCardHidden}
-            score={gameState.phase === 'finished' || !gameState.isDealerSecondCardHidden ? gameState.dealerScore : gameState.dealerVisibleScore}
-            dealingSequence={gameState.dealingSequences.dealer}
-          />
-          
-          {/* Game Results - Only show temporarily */}
-          {gameState.phase === 'finished' && gameState.results && gameState.messages && gameState.money > 0 ? (
-            <GameResults
-              results={gameState.results}
-              bets={gameState.bets}
-              totalWinnings={gameState.totalWinnings || 0}
-              totalHands={gameState.playerHands.length}
-              money={gameState.money}
-            />
-          ) : gameState.phase === 'finished' && gameState.money <= 0 ? (
-            // Game Over screen - stays until manual restart
-            <div className="text-center">
-              <div className="bg-gradient-to-r from-red-800 to-red-700 rounded-lg p-6 border border-red-600">
-                <h2 className="text-3xl font-bold mb-4 text-red-400">GAME OVER</h2>
-                <p className="text-xl mb-4">You&apos;re out of money!</p>
-                <Button onClick={handleNewGame} variant="primary" className="px-8 py-3">
-                  Start Over ($1000)
-                </Button>
-              </div>
-            </div>
-          ) : null}
-          
-          {/* Player Hands and Actions */}
-          <div className="space-y-4">
-            {/* Dynamic player hands layout */}
-            {renderPlayerHands()}
-            
-            {/* Show action buttons only during player's turn */}
-            {gameState.phase === 'playing' && (
-              <ActionButtons
-                onHit={handleHit}
-                onStand={handleStand}
-                onDouble={handleDouble}
-                onSplit={handleSplit}
-                canDouble={canDouble}
-                canSplit={canSplit}
-              />
-            )}
-          </div>
 
-          {/* Betting Area - only show during betting phase */}
-          {gameState.phase === 'betting'  && (
-            <div className="text-center">
-              <div className="mb-3">
-                <p className="text-lg font-semibold">Choose Your Bet:</p>
+        {/* Blackjack Table Area */}
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="relative w-full max-w-6xl h-full max-h-[600px]">
+            
+            {/* Felt Table Surface */}
+            <div className="absolute inset-0 rounded-[100px] bg-gradient-to-br from-green-800 via-green-700 to-green-900 shadow-2xl border-8 border-yellow-600/80">
+              {/* Table texture overlay */}
+              <div className="absolute inset-0 rounded-[92px] opacity-20 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_0%,transparent_50%)]"></div>
+              
+              {/* Gold trim inner border */}
+              <div className="absolute inset-4 rounded-[80px] border-2 border-yellow-400/60"></div>
+              
+              {/* Dealer area marking */}
+              <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
+                <div className="bg-green-900/50 rounded-lg px-6 py-2 border border-yellow-400/40">
+                  <div className="text-yellow-400 text-sm font-bold tracking-widest uppercase">
+                    Dealer
+                  </div>
+                </div>
               </div>
               
-              <div className="flex gap-4 justify-center">
-                <Chip value={10} isSelected={false} onClick={handlePlaceBet} />
-                <Chip value={25} isSelected={false} onClick={handlePlaceBet} />
-                <Chip value={50} isSelected={false} onClick={handlePlaceBet} />
-                <Chip value={100} isSelected={false} onClick={handlePlaceBet} />
+              {/* Player betting areas */}
+              <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
+                <div className="flex justify-center gap-8">
+                  {/* Betting circles for multiple hands */}
+                  {Array.from({ length: Math.max(1, gameState.playerHands.length) }).map((_, index) => (
+                    <div key={index} className="relative">
+                      <div className={`w-24 h-24 rounded-full border-4 ${
+                        index === gameState.currentHandIndex && gameState.phase === 'playing' 
+                          ? 'border-yellow-400 bg-yellow-400/10' 
+                          : 'border-yellow-400/50 bg-green-800/30'
+                      }`}>
+                        {/* Betting circle content */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          {gameState.bets[index] && (
+                            <div className="text-yellow-400 font-bold text-sm">
+                              ${gameState.bets[index]}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {/* Hand number for multiple hands */}
+                      {gameState.playerHands.length > 1 && (
+                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-yellow-400 text-xs font-bold">
+                          Hand {index + 1}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Table game area markings */}
+              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+                <div className="text-yellow-400/60 text-xs font-bold tracking-widest uppercase">
+                  Blackjack Pays 3 to 2
+                </div>
               </div>
             </div>
-          )}
 
-          {/* Show current bets during game */}
-          {gameState.phase !== 'betting' && gameState.phase !== 'finished' && (
-            <div className="text-center">
-              {gameState.bets.length === 1 ? (
-                <p className="text-lg font-semibold">Current Bet: <span className="text-yellow-400">${gameState.bets[0]}</span></p>
-              ) : (
-                <p className="text-lg font-semibold">
-                  Total Bets: <span className="text-yellow-400">${gameState.bets.reduce((sum, bet) => sum + bet, 0)}</span>
-                </p>
-              )}
+            {/* Game Content Overlay */}
+            <div className="relative z-10 h-full flex flex-col justify-between py-8 px-8">
+              
+              {/* Dealer Area */}
+              <div className="flex justify-center mb-4">
+                <DealerHand 
+                  cards={gameState.dealerHand}
+                  hideSecondCard={gameState.isDealerSecondCardHidden}
+                  score={gameState.phase === 'finished' || !gameState.isDealerSecondCardHidden ? gameState.dealerScore : gameState.dealerVisibleScore}
+                  dealingSequence={gameState.dealingSequences.dealer}
+                />
+              </div>
+              
+              {/* Center Game Results/Status Area */}
+              <div className="flex-1 flex items-center justify-center">
+                {gameState.phase === 'finished' && gameState.results && gameState.messages && gameState.money > 0 ? (
+                  <GameResults
+                    results={gameState.results}
+                    bets={gameState.bets}
+                    totalWinnings={gameState.totalWinnings || 0}
+                    totalHands={gameState.playerHands.length}
+                    money={gameState.money}
+                  />
+                ) : gameState.phase === 'finished' && gameState.money <= 0 ? (
+                  // Game Over screen - luxury styling
+                  <div className="text-center">
+                    <div className="bg-gradient-to-r from-red-900/90 via-red-800/90 to-red-900/90 rounded-2xl p-8 border-2 border-red-500/50 backdrop-blur-sm">
+                      <h2 className="text-4xl font-serif font-bold mb-6 text-red-400">GAME OVER</h2>
+                      <p className="text-xl mb-6 text-gray-200">Your bankroll has been depleted!</p>
+                      <Button onClick={handleNewGame} variant="primary" className="px-12 py-4 text-lg bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500">
+                        Restart with $1,000
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+              
+              {/* Player Area */}
+              <div className="space-y-6">
+                {/* Dynamic player hands layout */}
+                <div className="flex justify-center">
+                  {renderPlayerHands()}
+                </div>
+                
+                {/* Action buttons area */}
+                <div className="flex justify-center">
+                  {gameState.phase === 'playing' && (
+                    <ActionButtons
+                      onHit={handleHit}
+                      onStand={handleStand}
+                      onDouble={handleDouble}
+                      onSplit={handleSplit}
+                      canDouble={canDouble}
+                      canSplit={canSplit}
+                    />
+                  )}
+                </div>
+
+                {/* Betting Area - luxury casino style */}
+                {gameState.phase === 'betting' && (
+                  <div className="text-center">
+                    <div className="mb-4">
+                      <p className="text-xl font-serif text-yellow-400 tracking-wide">Place Your Bet</p>
+                      <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto mt-2"></div>
+                    </div>
+                    
+                    <div className="flex gap-6 justify-center">
+                      <Chip value={10} isSelected={false} onClick={handlePlaceBet} />
+                      <Chip value={25} isSelected={false} onClick={handlePlaceBet} />
+                      <Chip value={50} isSelected={false} onClick={handlePlaceBet} />
+                      <Chip value={100} isSelected={false} onClick={handlePlaceBet} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Current bet display */}
+                {gameState.phase !== 'betting' && gameState.phase !== 'finished' && (
+                  <div className="text-center">
+                    <div className="inline-block bg-green-900/50 rounded-lg px-6 py-3 border border-yellow-400/40">
+                      {gameState.bets.length === 1 ? (
+                        <p className="text-lg font-semibold text-gray-200">
+                          Current Bet: <span className="text-yellow-400 font-bold">${gameState.bets[0]}</span>
+                        </p>
+                      ) : (
+                        <p className="text-lg font-semibold text-gray-200">
+                          Total Bets: <span className="text-yellow-400 font-bold">${gameState.bets.reduce((sum, bet) => sum + bet, 0)}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </main>
