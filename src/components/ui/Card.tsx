@@ -2,6 +2,7 @@
 
 import { Card as CardType, getCardColor } from '@/types/card'
 import { useState, useEffect } from 'react'
+import { playCardDeal } from '@/lib/sounds'
 
 interface CardProps {
   card: CardType
@@ -19,9 +20,14 @@ export function Card({ card, isFlipped = false, dealingDelay = 0, size = 'normal
     if (dealingDelay > 0) {
       const timer = setTimeout(() => {
         setIsVisible(true)
+        // Play card dealing sound when card becomes visible
+        playCardDeal()
       }, dealingDelay)
       
       return () => clearTimeout(timer)
+    } else if (dealingDelay === 0) {
+      // Play sound immediately for cards with no delay
+      playCardDeal()
     }
   }, [dealingDelay])
   

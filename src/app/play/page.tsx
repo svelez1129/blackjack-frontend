@@ -529,9 +529,9 @@ export default function PlayPage() {
                           ? 'border-yellow-400 bg-yellow-400/10' 
                           : 'border-yellow-400/50 bg-green-800/30'
                       }`}>
-                        {/* Betting circle content - realistic chip display */}
+                        {/* Betting circle content - empty during betting */}
                         <div className="absolute inset-0 flex items-center justify-center">
-                          {gameState.bets[index] ? (
+                          {gameState.bets[index] && gameState.phase !== 'betting' ? (
                             <div className="relative">
                               {/* Render actual chip based on bet amount */}
                               {(() => {
@@ -559,10 +559,8 @@ export default function PlayPage() {
                               })()}
                             </div>
                           ) : (
-                            // Empty betting circle 
-                            <div className="text-yellow-400/40 font-bold text-xs tracking-widest">
-                              BET
-                            </div>
+                            // Empty betting circle during betting phase
+                            <div></div>
                           )}
                         </div>
                       </div>
