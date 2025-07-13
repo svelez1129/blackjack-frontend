@@ -23,10 +23,15 @@ class SoundManager {
     }
 
     Object.entries(soundFiles).forEach(([name, path]) => {
-      const audio = new Audio(path)
-      audio.preload = 'auto'
-      audio.volume = 0.3 // Default volume (30%)
-      this.sounds.set(name, audio)
+      try {
+        const audio = new Audio(path)
+        audio.preload = 'auto'
+        audio.volume = 0.3 // Default volume (30%)
+        this.sounds.set(name, audio)
+      } catch (error) {
+        // Handle Audio constructor errors in test environments
+        console.debug(`Failed to create audio for ${name}:`, error)
+      }
     })
   }
 

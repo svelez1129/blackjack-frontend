@@ -84,8 +84,14 @@ export class GameStorage {
       return saveData as SavedGameState
     } catch (error) {
       console.error('Failed to load game progress:', error)
-      // Clear corrupted save data
-      localStorage.removeItem(GUEST_SAVE_KEY)
+      // Clear corrupted save data - but only if localStorage is available
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.removeItem(GUEST_SAVE_KEY)
+        }
+      } catch (removeError) {
+        // Ignore removal errors in edge cases
+      }
       return null
     }
   }
@@ -105,5 +111,31 @@ export class GameStorage {
   static hasGuestProgress(): boolean {
     if (typeof window === 'undefined') return false // Server-side check
     return this.loadGuestProgress() !== null
+  }
+
+  // Daily rewards functionality
+  static saveLastClaimDate(date: Date): void {
+    if (typeof window === 'undefined') return // Server-side check
+    
+    try {
+      localStorage.setItem('blackjack_last_claim', date.toISOString())
+    } catch (error) {
+      console.error('Failed to save last claim date:', error)
+    }
+  }
+
+  static getLastClaimDate(): Date | null {
+    if (typeof window === 'undefined') return null // Server-side check
+    
+    try {
+      const dateString = localStorage.getItem('blackjack_last_claim')
+      if (!dateString) return null
+      
+      const date = new Date(dateString)
+      return isNaN(date.getTime()) ? null : date
+    } catch (error) {
+      console.error('Failed to get last claim date:', error)
+      return null
+    }
   }
 }
