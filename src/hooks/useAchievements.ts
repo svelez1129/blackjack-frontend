@@ -52,25 +52,32 @@ export function useAchievements() {
 
   const checkMultipleProgress = useCallback(async (updates: Record<string, number>) => {
     try {
+      console.log('🏆 checkMultipleProgress: Starting with updates:', updates)
       const newlyUnlocked = await achievementsService.checkMultipleProgress(updates)
+      console.log('🏆 checkMultipleProgress: Service returned, newly unlocked:', newlyUnlocked.length)
       
-      // Wait a brief moment for localStorage to be written, then read
-      await new Promise(resolve => setTimeout(resolve, 10))
-      
-      // Get the latest achievements state
+      // Always update achievements array after any progress update, not just unlocks
       const latestAchievements = await achievementsService.getAllAchievements()
-      // Create a new array to ensure React detects the change
-      setAchievements([...latestAchievements])
+      console.log('🏆 checkMultipleProgress: Got latest achievements, count:', latestAchievements.length)
       
-      // Force a re-render by updating counter
-      setUpdateCounter(prev => prev + 1)
+      // Log specific achievement progress
+      const hands10 = latestAchievements.find(a => a.id === 'hands_10')
+      console.log('🏆 checkMultipleProgress: hands_10 current/target:', hands10?.current, '/', hands10?.target)
       
-      if (newlyUnlocked.length > 0) {
-        // Force multiple state updates to ensure re-render
-        setTimeout(() => setUpdateCounter(prev => prev + 1), 0)
-        setTimeout(() => setUpdateCounter(prev => prev + 1), 10)
-        setTimeout(() => setUpdateCounter(prev => prev + 1), 100)
-      }
+      // Force completely new objects to ensure React detects changes
+      const freshAchievements = latestAchievements.map(achievement => ({
+        ...achievement,
+        // Add a timestamp to force re-render
+        _lastUpdated: Date.now()
+      }))
+      setAchievements(freshAchievements)
+      console.log('🏆 checkMultipleProgress: Set fresh achievements array')
+      
+      // Always force a re-render by updating counter for any progress change
+      setUpdateCounter(prev => {
+        console.log('🏆 checkMultipleProgress: Incrementing updateCounter from', prev, 'to', prev + 1)
+        return prev + 1
+      })
       
       // Add newly unlocked to recent unlocks
       if (newlyUnlocked.length > 0) {
@@ -78,11 +85,10 @@ export function useAchievements() {
         // Play achievement unlock sound for each newly unlocked achievement
         newlyUnlocked.forEach(() => playAchievement())
         
-        // Force another state update to ensure UI refresh
+        // Extra update for unlocks to ensure notifications show
         setTimeout(() => {
-          setAchievements(prev => [...prev])
           setUpdateCounter(prev => prev + 1)
-        }, 50)
+        }, 10)
       }
       
       return newlyUnlocked

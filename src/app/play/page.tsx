@@ -26,6 +26,7 @@ export default function PlayPage() {
   const [showWelcomeBack, setShowWelcomeBack] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [currentBet, setCurrentBet] = useState(0) // Track current bet being built
+  const [achievementsProcessed, setAchievementsProcessed] = useState(false) // Track if achievements have been processed for current results
   
   // Achievements
   const { 
@@ -53,6 +54,13 @@ export default function PlayPage() {
       const newState = engine.getState()
       setGameState(newState)
       setShowWelcomeBack(true)
+      
+      // If restoring a finished state, mark achievements as already processed
+      // to prevent duplicate tracking on refresh
+      if (newState.phase === 'finished') {
+        setAchievementsProcessed(true)
+      }
+      
       // Hide welcome message after 3 seconds
       setTimeout(() => setShowWelcomeBack(false), 3000)
     }
@@ -71,7 +79,9 @@ export default function PlayPage() {
   // Achievement tracking functions
   const trackAchievements = useCallback(async (updates: Record<string, number>) => {
     try {
+      console.log('🎯 trackAchievements called with updates:', updates)
       await checkMultipleProgress(updates)
+      console.log('🎯 trackAchievements completed')
     } catch (error) {
       console.error('Failed to track achievements:', error)
     }
@@ -136,6 +146,11 @@ export default function PlayPage() {
       // Play lose sound
       playLose()
       
+      // Reset win streak achievements to 0 on loss
+      updates['win_streak_3'] = 0
+      updates['win_streak_5'] = 0
+      updates['win_streak_10'] = 0
+      
       // Basic milestone tracking
       updates['hands_10'] = 1
       updates['hands_50'] = 1
@@ -143,6 +158,9 @@ export default function PlayPage() {
       updates['hands_500'] = 1
     } else if (result === 'push') {
       stats.handsPushed += 1
+      
+      // Push doesn't break win streak, but also doesn't extend it
+      // Keep win streak achievements at their current state (don't update)
       
       // Basic milestone tracking
       updates['hands_10'] = 1
@@ -171,7 +189,10 @@ export default function PlayPage() {
     if (gameState.phase === 'finished' && gameState.money > 0) {
       // Track results before resetting
       const handleResults = async () => {
-        if (gameState.results && gameState.bets) {
+        if (gameState.results && gameState.bets && !achievementsProcessed) {
+          // Mark achievements as processed to prevent duplicate tracking on refresh
+          setAchievementsProcessed(true)
+          
           // Wait for all achievement tracking to complete
           await Promise.all(
             gameState.results.map((result) =>
@@ -184,12 +205,14 @@ export default function PlayPage() {
         setTimeout(() => {
           engine.resetForNextRound()
           setGameState(engine.getState())
-        }, 1500) // Show results for 1.5 seconds after achievements are processed
+          // Reset achievements processed flag for next round
+          setAchievementsProcessed(false)
+        }, achievementsProcessed ? 500 : 1500) // Shorter delay if achievements already processed (on refresh)
       }
 
       handleResults()
     }
-  }, [gameState.phase, gameState.money, gameState.results, gameState.bets, gameState.playerHands, engine, trackHandResult])
+  }, [gameState.phase, gameState.money, gameState.results, gameState.bets, gameState.playerHands, engine, trackHandResult, achievementsProcessed])
 
   const updateGameState = () => {
     setGameState(engine.getState())

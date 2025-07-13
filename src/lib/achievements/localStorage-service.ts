@@ -173,15 +173,21 @@ export class LocalStorageAchievementService implements AchievementServiceInterfa
   }
 
   async checkMultipleProgress(updates: Record<string, number>): Promise<Achievement[]> {
+    console.log('🔧 localStorage checkMultipleProgress: Starting with updates:', updates)
     const achievements = this.loadAchievements()
     const unlockedAchievements: Achievement[] = []
 
     Object.entries(updates).forEach(([achievementId, value]) => {
       const achievement = achievements.find(a => a.id === achievementId)
       
-      if (!achievement) return
+      if (!achievement) {
+        console.log('🔧 localStorage: Achievement not found:', achievementId)
+        return
+      }
 
       const wasUnlocked = achievement.unlocked
+      const oldCurrent = achievement.current
+      console.log('🔧 localStorage:', achievementId, 'before update - current:', oldCurrent, 'unlocked:', wasUnlocked)
       
       // Skip updates for already unlocked non-streak achievements
       if (achievement.unlocked && achievement.type !== 'streak') return
@@ -191,12 +197,11 @@ export class LocalStorageAchievementService implements AchievementServiceInterfa
         // For balance achievements, use setProgress (max value)
         achievement.current = Math.max(achievement.current, value)
       } else if (achievement.type === 'streak') {
-        // For streaks, use exact value (don't unlock if already unlocked and value decreased)
+        // For streaks, use exact value and reset if value is 0 or decreases below target
         achievement.current = Math.max(0, value)
-        // If already unlocked and new value is less than target, don't "unlock" again
-        if (achievement.unlocked && achievement.current < achievement.target) {
-          // Keep it unlocked but update current value
-        }
+        
+        // Important: Don't reset unlocked status - once unlocked, stay unlocked
+        // But do update the current value to show current streak progress
       } else if (achievementId === 'win_1000') {
         // For single hand win achievements, increment only if threshold met
         if (value >= 1000) {
@@ -213,9 +218,13 @@ export class LocalStorageAchievementService implements AchievementServiceInterfa
         achievement.unlocked = true
         achievement.unlockedAt = new Date()
         unlockedAchievements.push(achievement)
+        console.log('🔧 localStorage: NEWLY UNLOCKED:', achievementId)
       }
+      
+      console.log('🔧 localStorage:', achievementId, 'after update - current:', achievement.current, 'unlocked:', achievement.unlocked)
     })
 
+    console.log('🔧 localStorage: Saving achievements, newly unlocked count:', unlockedAchievements.length)
     this.saveAchievements(achievements)
     return unlockedAchievements
   }
