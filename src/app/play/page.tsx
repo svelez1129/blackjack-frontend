@@ -14,6 +14,7 @@ import { DailyRewards } from '@/components/rewards/DailyRewards'
 import { AchievementsButton } from '@/components/achievements/AchievementsButton'
 import { AchievementNotification } from '@/components/achievements/AchievementNotification'
 import { useAchievements } from '@/hooks/useAchievements'
+import { getAchievementsService } from '@/lib/achievements'
 import { playChipPlace, playButtonClick, playWin, playBlackjack, playLose } from '@/lib/sounds'
 
 export default function PlayPage() {
@@ -25,14 +26,18 @@ export default function PlayPage() {
   const [showWelcomeBack, setShowWelcomeBack] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [currentBet, setCurrentBet] = useState(0) // Track current bet being built
+  const [achievementsProcessed, setAchievementsProcessed] = useState(false) // Track if achievements have been processed for current results
   
   // Achievements
   const { 
     recentUnlocks, 
-    clearRecentUnlock, 
+    clearRecentUnlock,
+    clearAllRecentUnlocks,
     checkMultipleProgress,
     getGameStats,
-    saveGameStats
+    saveGameStats,
+    refresh,
+    unlockedAchievements
   } = useAchievements()
 
   // Client-side initialization after hydration
@@ -49,6 +54,13 @@ export default function PlayPage() {
       const newState = engine.getState()
       setGameState(newState)
       setShowWelcomeBack(true)
+      
+      // If restoring a finished state, mark achievements as already processed
+      // to prevent duplicate tracking on refresh
+      if (newState.phase === 'finished') {
+        setAchievementsProcessed(true)
+      }
+      
       // Hide welcome message after 3 seconds
       setTimeout(() => setShowWelcomeBack(false), 3000)
     }
@@ -67,7 +79,9 @@ export default function PlayPage() {
   // Achievement tracking functions
   const trackAchievements = useCallback(async (updates: Record<string, number>) => {
     try {
+      console.log('🎯 trackAchievements called with updates:', updates)
       await checkMultipleProgress(updates)
+      console.log('🎯 trackAchievements completed')
     } catch (error) {
       console.error('Failed to track achievements:', error)
     }
@@ -119,7 +133,7 @@ export default function PlayPage() {
         updates['win_1000'] = winAmount
       }
 
-      updates['total_winnings_5000'] = stats.totalWinnings
+      updates['balance_5000'] = gameState.money + winAmount
       updates['millionaire'] = gameState.money + winAmount
 
     } else if (result === 'lose') {
@@ -132,6 +146,11 @@ export default function PlayPage() {
       // Play lose sound
       playLose()
       
+      // Reset win streak achievements to 0 on loss
+      updates['win_streak_3'] = 0
+      updates['win_streak_5'] = 0
+      updates['win_streak_10'] = 0
+      
       // Basic milestone tracking
       updates['hands_10'] = 1
       updates['hands_50'] = 1
@@ -139,6 +158,9 @@ export default function PlayPage() {
       updates['hands_500'] = 1
     } else if (result === 'push') {
       stats.handsPushed += 1
+      
+      // Push doesn't break win streak, but also doesn't extend it
+      // Keep win streak achievements at their current state (don't update)
       
       // Basic milestone tracking
       updates['hands_10'] = 1
@@ -166,20 +188,31 @@ export default function PlayPage() {
   useEffect(() => {
     if (gameState.phase === 'finished' && gameState.money > 0) {
       // Track results before resetting
-      if (gameState.results && gameState.bets) {
-        gameState.results.forEach((result) => {
-          trackHandResult(result, gameState.bets[0], gameState.playerHands)
-        })
+      const handleResults = async () => {
+        if (gameState.results && gameState.bets && !achievementsProcessed) {
+          // Mark achievements as processed to prevent duplicate tracking on refresh
+          setAchievementsProcessed(true)
+          
+          // Wait for all achievement tracking to complete
+          await Promise.all(
+            gameState.results.map((result) =>
+              trackHandResult(result, gameState.bets[0], gameState.playerHands)
+            )
+          )
+        }
+
+        // Wait a bit longer to show achievement updates, then reset
+        setTimeout(() => {
+          engine.resetForNextRound()
+          setGameState(engine.getState())
+          // Reset achievements processed flag for next round
+          setAchievementsProcessed(false)
+        }, achievementsProcessed ? 500 : 1500) // Shorter delay if achievements already processed (on refresh)
       }
 
-      const timer = setTimeout(() => {
-        engine.resetForNextRound()
-        setGameState(engine.getState())
-      }, 1000) // Show results for 1 seconds before resetting
-
-      return () => clearTimeout(timer)
+      handleResults()
     }
-  }, [gameState.phase, gameState.money, gameState.results, gameState.bets, gameState.playerHands, engine, trackHandResult])
+  }, [gameState.phase, gameState.money, gameState.results, gameState.bets, gameState.playerHands, engine, trackHandResult, achievementsProcessed])
 
   const updateGameState = () => {
     setGameState(engine.getState())
@@ -261,9 +294,30 @@ export default function PlayPage() {
     await trackAchievements({ 'first_split': 1 })
   }
 
-  const handleNewGame = () => {
+  const handleNewGame = async () => {
     engine.resetProgress()
     updateGameState()
+    
+    // Reset achievements and game stats when starting a new game
+    const achievementsService = getAchievementsService()
+    await achievementsService.resetProgress() // Reset all achievements
+    
+    // Clear any recent achievement unlocks
+    clearAllRecentUnlocks()
+    
+    // Reset game stats as well
+    const defaultStats = {
+      handsPlayed: 0, handsWon: 0, handsLost: 0, handsPushed: 0, blackjacksHit: 0,
+      totalWinnings: 0, totalLosses: 0, biggestWin: 0, biggestLoss: 0,
+      timesHit: 0, timesStood: 0, timesDoubled: 0, timesSplit: 0,
+      currentWinStreak: 0, maxWinStreak: 0, currentLossStreak: 0, maxLossStreak: 0,
+      bustedHands: 0, dealerBusts: 0, perfectTwentyOnes: 0,
+      firstPlayDate: new Date(), lastPlayDate: new Date(), totalPlayTime: 0
+    }
+    saveGameStats(defaultStats)
+    
+    // Force refresh achievements UI
+    await refresh()
   }
 
   const handleRewardClaimed = (amount: number) => {
@@ -490,7 +544,7 @@ export default function PlayPage() {
         {/* Casino Header Bar */}
         <div className="bg-gradient-to-r from-black via-gray-900 to-black border-b border-yellow-400/30 px-6 py-4">
           <div className="flex justify-between items-center max-w-7xl mx-auto">
-            <AchievementsButton />
+            <AchievementsButton key={`achievements-${unlockedAchievements.length}`} />
             
             {/* Casino Branding */}
             <div className="text-center">

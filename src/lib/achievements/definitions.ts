@@ -174,15 +174,15 @@ export const ACHIEVEMENT_DEFINITIONS: Achievement[] = [
     type: 'milestone',
     rarity: 'rare',
     icon: '💰',
-    target: 1000,
+    target: 1,
     current: 0,
     coinReward: 300,
     unlocked: false
   },
   {
-    id: 'total_winnings_5000',
+    id: 'balance_5000',
     title: 'High Roller',
-    description: 'Win $5,000 total',
+    description: 'Reach $5,000 in your balance',
     type: 'milestone',
     rarity: 'epic',
     icon: '💎',
@@ -276,7 +276,7 @@ export const ACHIEVEMENT_CATEGORIES = {
   'Milestones': ['hands_10', 'hands_50', 'hands_100', 'hands_500'],
   'Win Streaks': ['win_streak_3', 'win_streak_5', 'win_streak_10'],
   'Blackjack Master': ['blackjacks_5', 'blackjacks_10', 'perfect_21'],
-  'High Roller': ['win_1000', 'total_winnings_5000', 'millionaire'],
+  'High Roller': ['win_1000', 'balance_5000', 'millionaire'],
   'Skill Based': ['split_master', 'double_winner', 'dealer_bust_5'],
   'Special': ['comeback_king']
 }

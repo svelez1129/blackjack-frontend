@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAchievements } from '@/hooks/useAchievements'
 import { ACHIEVEMENT_CATEGORIES } from '@/lib/achievements'
 import type { Achievement } from '@/lib/achievements'
@@ -14,24 +14,31 @@ interface AchievementsListProps {
 export function AchievementsList({ isOpen, onClose }: AchievementsListProps) {
   const { 
     achievements, 
-    isLoading, 
-    getStats 
+    isLoading
   } = useAchievements()
-  
-  const [stats, setStats] = useState({
-    unlockedCount: 0,
-    totalRewards: 0,
-    completionPercentage: 0,
-    totalAchievements: 0
-  })
   
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
-  useEffect(() => {
-    if (isOpen) {
-      getStats().then(setStats)
-    }
-  }, [isOpen, getStats])
+  // Calculate stats directly from achievements (reactive)
+  const unlockedAchievements = achievements.filter(a => a.unlocked && !a.hidden)
+  const visibleAchievements = achievements.filter(a => !a.hidden)
+  const totalRewards = unlockedAchievements.reduce((total, a) => total + a.coinReward, 0)
+  const completionPercentage = visibleAchievements.length > 0 
+    ? Math.round((unlockedAchievements.length / visibleAchievements.length) * 100) 
+    : 0
+  
+  const stats = {
+    unlockedCount: unlockedAchievements.length,
+    totalRewards,
+    completionPercentage,
+    totalAchievements: visibleAchievements.length
+  }
+
+  // Debug logging for achievements list
+  const hands10 = achievements.find(a => a.id === 'hands_10')
+  if (isOpen && hands10) {
+    console.log('📊 AchievementsList render: hands_10 current/target:', hands10.current, '/', hands10.target)
+  }
 
   if (!isOpen) return null
 
@@ -101,7 +108,10 @@ export function AchievementsList({ isOpen, onClose }: AchievementsListProps) {
           ) : (
             <div className="grid gap-4">
               {filteredAchievements.map(achievement => (
-                <AchievementCard key={achievement.id} achievement={achievement} />
+                <AchievementCard 
+                  key={`${achievement.id}-${achievement.current}-${achievement.unlocked}`} 
+                  achievement={achievement} 
+                />
               ))}
             </div>
           )}
@@ -114,6 +124,11 @@ export function AchievementsList({ isOpen, onClose }: AchievementsListProps) {
 function AchievementCard({ achievement }: { achievement: Achievement }) {
   const progress = achievement.target > 0 ? (achievement.current / achievement.target) * 100 : 0
   const isUnlocked = achievement.unlocked
+  
+  // Debug logging for hands_10 achievement card
+  if (achievement.id === 'hands_10') {
+    console.log('💳 AchievementCard hands_10 render: current/target/progress:', achievement.current, '/', achievement.target, '=', progress + '%')
+  }
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
@@ -187,8 +202,12 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
               </div>
               <div className="w-full bg-emerald-700 rounded-full h-2">
                 <div 
-                  className={`h-2 rounded-full transition-all duration-300 ${getProgressBarColor(achievement.rarity)}`}
-                  style={{ width: `${Math.min(progress, 100)}%` }}
+                  className={`h-2 rounded-full transition-all duration-500 ${getProgressBarColor(achievement.rarity)}`}
+                  style={{ 
+                    width: `${Math.min(progress, 100)}%`,
+                    // Force a repaint by using a slightly different property
+                    transform: `translateX(0px)`
+                  }}
                 />
               </div>
             </div>

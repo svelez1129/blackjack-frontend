@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { getAchievementsService, type Achievement, type GameStats } from '@/lib/achievements'
 import { playAchievement } from '@/lib/sounds'
 
@@ -9,6 +9,7 @@ export function useAchievements() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [recentUnlocks, setRecentUnlocks] = useState<Achievement[]>([])
+  const [updateCounter, setUpdateCounter] = useState(0)
 
   const achievementsService = getAchievementsService()
 
@@ -17,7 +18,9 @@ export function useAchievements() {
       setIsLoading(true)
       setError(null)
       const allAchievements = await achievementsService.getAllAchievements()
-      setAchievements(allAchievements)
+      // Create a new array to ensure React detects the change
+      setAchievements([...allAchievements])
+      setUpdateCounter(prev => prev + 1)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load achievements')
     } finally {
@@ -49,16 +52,43 @@ export function useAchievements() {
 
   const checkMultipleProgress = useCallback(async (updates: Record<string, number>) => {
     try {
+      console.log('🏆 checkMultipleProgress: Starting with updates:', updates)
       const newlyUnlocked = await achievementsService.checkMultipleProgress(updates)
+      console.log('🏆 checkMultipleProgress: Service returned, newly unlocked:', newlyUnlocked.length)
       
-      // Refresh all achievements to get latest state
-      await loadAchievements()
+      // Always update achievements array after any progress update, not just unlocks
+      const latestAchievements = await achievementsService.getAllAchievements()
+      console.log('🏆 checkMultipleProgress: Got latest achievements, count:', latestAchievements.length)
+      
+      // Log specific achievement progress
+      const hands10 = latestAchievements.find(a => a.id === 'hands_10')
+      console.log('🏆 checkMultipleProgress: hands_10 current/target:', hands10?.current, '/', hands10?.target)
+      
+      // Force completely new objects to ensure React detects changes
+      const freshAchievements = latestAchievements.map(achievement => ({
+        ...achievement,
+        // Add a timestamp to force re-render
+        _lastUpdated: Date.now()
+      }))
+      setAchievements(freshAchievements)
+      console.log('🏆 checkMultipleProgress: Set fresh achievements array')
+      
+      // Always force a re-render by updating counter for any progress change
+      setUpdateCounter(prev => {
+        console.log('🏆 checkMultipleProgress: Incrementing updateCounter from', prev, 'to', prev + 1)
+        return prev + 1
+      })
       
       // Add newly unlocked to recent unlocks
       if (newlyUnlocked.length > 0) {
         setRecentUnlocks(prev => [...newlyUnlocked, ...prev])
         // Play achievement unlock sound for each newly unlocked achievement
         newlyUnlocked.forEach(() => playAchievement())
+        
+        // Extra update for unlocks to ensure notifications show
+        setTimeout(() => {
+          setUpdateCounter(prev => prev + 1)
+        }, 10)
       }
       
       return newlyUnlocked
@@ -66,7 +96,7 @@ export function useAchievements() {
       setError(err instanceof Error ? err.message : 'Failed to check progress')
       return []
     }
-  }, [achievementsService, loadAchievements])
+  }, [achievementsService])
 
   const clearRecentUnlock = useCallback((achievementId: string) => {
     setRecentUnlocks(prev => prev.filter(a => a.id !== achievementId))
@@ -125,10 +155,23 @@ export function useAchievements() {
     loadAchievements()
   }, [loadAchievements])
 
-  // Derived state
-  const unlockedAchievements = achievements.filter(a => a.unlocked)
-  const lockedAchievements = achievements.filter(a => !a.unlocked && !a.hidden)
-  const hiddenAchievements = achievements.filter(a => !a.unlocked && a.hidden)
+  // Derived state with useMemo to ensure proper re-renders
+  const unlockedAchievements = useMemo(() => {
+    const unlocked = achievements.filter(a => a.unlocked)
+    // Create a new array to ensure reference changes
+    return [...unlocked]
+  }, [achievements, updateCounter])
+  
+  const lockedAchievements = useMemo(() => 
+    achievements.filter(a => !a.unlocked && !a.hidden), 
+    [achievements, updateCounter]
+  )
+  
+  const hiddenAchievements = useMemo(() => 
+    achievements.filter(a => !a.unlocked && a.hidden), 
+    [achievements, updateCounter]
+  )
+  
   const hasRecentUnlocks = recentUnlocks.length > 0
 
   return {
@@ -141,6 +184,7 @@ export function useAchievements() {
     error,
     recentUnlocks,
     hasRecentUnlocks,
+    updateCounter,
     
     // Actions
     updateProgress,
