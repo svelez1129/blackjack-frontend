@@ -10,6 +10,7 @@ export function AchievementsButton() {
   
   const totalVisible = achievements.filter(a => !a.hidden).length
   const unlockedCount = unlockedAchievements.length
+  
 
   return (
     <>

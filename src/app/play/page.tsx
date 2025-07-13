@@ -14,6 +14,7 @@ import { DailyRewards } from '@/components/rewards/DailyRewards'
 import { AchievementsButton } from '@/components/achievements/AchievementsButton'
 import { AchievementNotification } from '@/components/achievements/AchievementNotification'
 import { useAchievements } from '@/hooks/useAchievements'
+import { getAchievementsService } from '@/lib/achievements'
 import { playChipPlace, playButtonClick, playWin, playBlackjack, playLose } from '@/lib/sounds'
 
 export default function PlayPage() {
@@ -29,10 +30,13 @@ export default function PlayPage() {
   // Achievements
   const { 
     recentUnlocks, 
-    clearRecentUnlock, 
+    clearRecentUnlock,
+    clearAllRecentUnlocks,
     checkMultipleProgress,
     getGameStats,
-    saveGameStats
+    saveGameStats,
+    refresh,
+    unlockedAchievements
   } = useAchievements()
 
   // Client-side initialization after hydration
@@ -119,7 +123,7 @@ export default function PlayPage() {
         updates['win_1000'] = winAmount
       }
 
-      updates['total_winnings_5000'] = stats.totalWinnings
+      updates['balance_5000'] = gameState.money + winAmount
       updates['millionaire'] = gameState.money + winAmount
 
     } else if (result === 'lose') {
@@ -166,18 +170,24 @@ export default function PlayPage() {
   useEffect(() => {
     if (gameState.phase === 'finished' && gameState.money > 0) {
       // Track results before resetting
-      if (gameState.results && gameState.bets) {
-        gameState.results.forEach((result) => {
-          trackHandResult(result, gameState.bets[0], gameState.playerHands)
-        })
+      const handleResults = async () => {
+        if (gameState.results && gameState.bets) {
+          // Wait for all achievement tracking to complete
+          await Promise.all(
+            gameState.results.map((result) =>
+              trackHandResult(result, gameState.bets[0], gameState.playerHands)
+            )
+          )
+        }
+
+        // Wait a bit longer to show achievement updates, then reset
+        setTimeout(() => {
+          engine.resetForNextRound()
+          setGameState(engine.getState())
+        }, 1500) // Show results for 1.5 seconds after achievements are processed
       }
 
-      const timer = setTimeout(() => {
-        engine.resetForNextRound()
-        setGameState(engine.getState())
-      }, 1000) // Show results for 1 seconds before resetting
-
-      return () => clearTimeout(timer)
+      handleResults()
     }
   }, [gameState.phase, gameState.money, gameState.results, gameState.bets, gameState.playerHands, engine, trackHandResult])
 
@@ -261,9 +271,30 @@ export default function PlayPage() {
     await trackAchievements({ 'first_split': 1 })
   }
 
-  const handleNewGame = () => {
+  const handleNewGame = async () => {
     engine.resetProgress()
     updateGameState()
+    
+    // Reset achievements and game stats when starting a new game
+    const achievementsService = getAchievementsService()
+    await achievementsService.resetProgress() // Reset all achievements
+    
+    // Clear any recent achievement unlocks
+    clearAllRecentUnlocks()
+    
+    // Reset game stats as well
+    const defaultStats = {
+      handsPlayed: 0, handsWon: 0, handsLost: 0, handsPushed: 0, blackjacksHit: 0,
+      totalWinnings: 0, totalLosses: 0, biggestWin: 0, biggestLoss: 0,
+      timesHit: 0, timesStood: 0, timesDoubled: 0, timesSplit: 0,
+      currentWinStreak: 0, maxWinStreak: 0, currentLossStreak: 0, maxLossStreak: 0,
+      bustedHands: 0, dealerBusts: 0, perfectTwentyOnes: 0,
+      firstPlayDate: new Date(), lastPlayDate: new Date(), totalPlayTime: 0
+    }
+    saveGameStats(defaultStats)
+    
+    // Force refresh achievements UI
+    await refresh()
   }
 
   const handleRewardClaimed = (amount: number) => {
@@ -490,7 +521,7 @@ export default function PlayPage() {
         {/* Casino Header Bar */}
         <div className="bg-gradient-to-r from-black via-gray-900 to-black border-b border-yellow-400/30 px-6 py-4">
           <div className="flex justify-between items-center max-w-7xl mx-auto">
-            <AchievementsButton />
+            <AchievementsButton key={`achievements-${unlockedAchievements.length}`} />
             
             {/* Casino Branding */}
             <div className="text-center">

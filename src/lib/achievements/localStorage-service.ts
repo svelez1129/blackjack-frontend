@@ -137,8 +137,8 @@ export class LocalStorageAchievementService implements AchievementServiceInterfa
       return achievement || null
     }
 
-    // Update progress
-    achievement.current = Math.min(achievement.current + increment, achievement.target)
+    // Update progress (ensure it doesn't go below 0)
+    achievement.current = Math.min(Math.max(achievement.current + increment, 0), achievement.target)
     
     // Check if unlocked
     if (achievement.current >= achievement.target && !achievement.unlocked) {
@@ -179,20 +179,33 @@ export class LocalStorageAchievementService implements AchievementServiceInterfa
     Object.entries(updates).forEach(([achievementId, value]) => {
       const achievement = achievements.find(a => a.id === achievementId)
       
-      if (!achievement || achievement.unlocked) return
+      if (!achievement) return
 
       const wasUnlocked = achievement.unlocked
       
+      // Skip updates for already unlocked non-streak achievements
+      if (achievement.unlocked && achievement.type !== 'streak') return
+      
       // Different update logic based on achievement type
-      if (achievement.type === 'milestone' && achievementId.includes('total_winnings')) {
-        // For total winnings, use setProgress (max value)
+      if (achievement.type === 'milestone' && (achievementId.includes('balance_') || achievementId.includes('millionaire'))) {
+        // For balance achievements, use setProgress (max value)
         achievement.current = Math.max(achievement.current, value)
       } else if (achievement.type === 'streak') {
-        // For streaks, use exact value
-        achievement.current = value
+        // For streaks, use exact value (don't unlock if already unlocked and value decreased)
+        achievement.current = Math.max(0, value)
+        // If already unlocked and new value is less than target, don't "unlock" again
+        if (achievement.unlocked && achievement.current < achievement.target) {
+          // Keep it unlocked but update current value
+        }
+      } else if (achievementId === 'win_1000') {
+        // For single hand win achievements, increment only if threshold met
+        if (value >= 1000) {
+          achievement.current = Math.min(achievement.current + 1, achievement.target)
+        }
+        // If value < 1000, don't update progress at all
       } else {
-        // For counters, increment
-        achievement.current = Math.min(achievement.current + value, achievement.target)
+        // For counters, increment (ensure no negative values)
+        achievement.current = Math.min(Math.max(achievement.current + value, 0), achievement.target)
       }
       
       // Check if newly unlocked
@@ -240,9 +253,10 @@ export class LocalStorageAchievementService implements AchievementServiceInterfa
         this.saveAchievements(achievements)
       }
     } else {
-      // Reset all achievements
+      // Reset all achievements AND game stats
       if (this.isClient()) {
         localStorage.removeItem(STORAGE_KEYS.ACHIEVEMENTS)
+        localStorage.removeItem(STORAGE_KEYS.GAME_STATS)
       }
     }
   }

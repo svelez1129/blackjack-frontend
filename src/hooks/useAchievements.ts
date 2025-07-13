@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { getAchievementsService, type Achievement, type GameStats } from '@/lib/achievements'
 import { playAchievement } from '@/lib/sounds'
 
@@ -9,6 +9,7 @@ export function useAchievements() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [recentUnlocks, setRecentUnlocks] = useState<Achievement[]>([])
+  const [updateCounter, setUpdateCounter] = useState(0)
 
   const achievementsService = getAchievementsService()
 
@@ -17,7 +18,9 @@ export function useAchievements() {
       setIsLoading(true)
       setError(null)
       const allAchievements = await achievementsService.getAllAchievements()
-      setAchievements(allAchievements)
+      // Create a new array to ensure React detects the change
+      setAchievements([...allAchievements])
+      setUpdateCounter(prev => prev + 1)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load achievements')
     } finally {
@@ -51,14 +54,35 @@ export function useAchievements() {
     try {
       const newlyUnlocked = await achievementsService.checkMultipleProgress(updates)
       
-      // Refresh all achievements to get latest state
-      await loadAchievements()
+      // Wait a brief moment for localStorage to be written, then read
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      // Get the latest achievements state
+      const latestAchievements = await achievementsService.getAllAchievements()
+      // Create a new array to ensure React detects the change
+      setAchievements([...latestAchievements])
+      
+      // Force a re-render by updating counter
+      setUpdateCounter(prev => prev + 1)
+      
+      if (newlyUnlocked.length > 0) {
+        // Force multiple state updates to ensure re-render
+        setTimeout(() => setUpdateCounter(prev => prev + 1), 0)
+        setTimeout(() => setUpdateCounter(prev => prev + 1), 10)
+        setTimeout(() => setUpdateCounter(prev => prev + 1), 100)
+      }
       
       // Add newly unlocked to recent unlocks
       if (newlyUnlocked.length > 0) {
         setRecentUnlocks(prev => [...newlyUnlocked, ...prev])
         // Play achievement unlock sound for each newly unlocked achievement
         newlyUnlocked.forEach(() => playAchievement())
+        
+        // Force another state update to ensure UI refresh
+        setTimeout(() => {
+          setAchievements(prev => [...prev])
+          setUpdateCounter(prev => prev + 1)
+        }, 50)
       }
       
       return newlyUnlocked
@@ -66,7 +90,7 @@ export function useAchievements() {
       setError(err instanceof Error ? err.message : 'Failed to check progress')
       return []
     }
-  }, [achievementsService, loadAchievements])
+  }, [achievementsService])
 
   const clearRecentUnlock = useCallback((achievementId: string) => {
     setRecentUnlocks(prev => prev.filter(a => a.id !== achievementId))
@@ -125,10 +149,23 @@ export function useAchievements() {
     loadAchievements()
   }, [loadAchievements])
 
-  // Derived state
-  const unlockedAchievements = achievements.filter(a => a.unlocked)
-  const lockedAchievements = achievements.filter(a => !a.unlocked && !a.hidden)
-  const hiddenAchievements = achievements.filter(a => !a.unlocked && a.hidden)
+  // Derived state with useMemo to ensure proper re-renders
+  const unlockedAchievements = useMemo(() => {
+    const unlocked = achievements.filter(a => a.unlocked)
+    // Create a new array to ensure reference changes
+    return [...unlocked]
+  }, [achievements, updateCounter])
+  
+  const lockedAchievements = useMemo(() => 
+    achievements.filter(a => !a.unlocked && !a.hidden), 
+    [achievements, updateCounter]
+  )
+  
+  const hiddenAchievements = useMemo(() => 
+    achievements.filter(a => !a.unlocked && a.hidden), 
+    [achievements, updateCounter]
+  )
+  
   const hasRecentUnlocks = recentUnlocks.length > 0
 
   return {
@@ -141,6 +178,7 @@ export function useAchievements() {
     error,
     recentUnlocks,
     hasRecentUnlocks,
+    updateCounter,
     
     // Actions
     updateProgress,
