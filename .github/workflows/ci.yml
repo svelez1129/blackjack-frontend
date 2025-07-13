@@ -39,10 +39,11 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
+    # Only deploy when pushing to main branch (not feature branches)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
     - name: Deploy to production
       run: |
-        echo "Production deployment triggered"
+        echo "Production deployment triggered for main branch"
         echo "Vercel will handle automatic deployment"
