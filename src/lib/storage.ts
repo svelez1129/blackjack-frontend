@@ -89,7 +89,7 @@ export class GameStorage {
         if (typeof window !== 'undefined' && window.localStorage) {
           localStorage.removeItem(GUEST_SAVE_KEY)
         }
-      } catch (removeError) {
+      } catch {
         // Ignore removal errors in edge cases
       }
       return null

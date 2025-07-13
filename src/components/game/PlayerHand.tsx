@@ -18,7 +18,7 @@ export function PlayerHand({
   dealingSequence = [], 
   handNumber,
   isActive = false,
-  bet: _bet,
+  bet: _bet, // eslint-disable-line @typescript-eslint/no-unused-vars
   totalHands = 1,
   showScore = false
 }: PlayerHandProps) {
