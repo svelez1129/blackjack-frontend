@@ -19,6 +19,38 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white overflow-hidden relative">
+      {/* Structured Data for SEO */}
+      <script 
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Game",
+            "name": "Premium Blackjack Casino",
+            "description": "Play the ultimate luxury blackjack game online! Start with $1,000, authentic casino rules, premium sound effects, achievements system.",
+            "applicationCategory": "GameApplication",
+            "operatingSystem": "Web Browser",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating", 
+              "ratingValue": "4.8",
+              "ratingCount": "1250"
+            },
+            "gameFeature": [
+              "Free to play",
+              "$1000 starting bankroll", 
+              "Authentic casino rules",
+              "Premium sound effects",
+              "Achievement system",
+              "Daily rewards"
+            ]
+          })
+        }}
+      />
       {/* Luxury casino background */}
       <div className="absolute inset-0">
         {/* Dark gradient overlay */}

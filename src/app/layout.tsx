@@ -13,14 +13,50 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BLACKJACK - Premium Casino Experience | Play Free with $1,000",
-  description: "Experience the thrill of high-stakes blackjack with our premium casino game. Start with $1,000, no registration required. Authentic rules, luxury interface, instant play.",
-  keywords: "premium blackjack, luxury casino, high stakes blackjack, VIP blackjack, free casino game, authentic blackjack",
-  openGraph: {
-    title: "BLACKJACK - Premium Casino Experience",
-    description: "Step into the world of high-stakes blackjack. $1,000 starting bankroll, luxury interface, authentic casino rules.",
-    type: "website",
+  title: "Free Blackjack Game - Premium Casino Experience | $1,000 Starting Bankroll",
+  description: "Play the ultimate luxury blackjack game online! Start with $1,000, authentic casino rules, premium sound effects, achievements system. No registration required - instant play!",
+  keywords: "free blackjack game, online casino blackjack, luxury blackjack, premium casino game, blackjack 21, casino table games, authentic blackjack rules, high stakes blackjack, VIP blackjack experience",
+  authors: [{ name: "Premium Casino Games" }],
+  creator: "Premium Casino Games",
+  publisher: "Premium Casino Games",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
+  openGraph: {
+    title: "Free Blackjack Game - Premium Casino Experience",
+    description: "Experience luxury blackjack with $1,000 starting bankroll. Authentic casino rules, premium sound effects, and achievement system. Play instantly!",
+    type: "website",
+    siteName: "Premium Blackjack Casino",
+    locale: "en_US",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Premium Blackjack Casino Game"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Free Blackjack Game - Premium Casino Experience",
+    description: "Experience luxury blackjack with $1,000 starting bankroll. Play instantly!",
+    images: ["/og-image.jpg"],
+  },
+  alternates: {
+    canonical: "https://blackjackus.com",
+  },
+  other: {
+    "google-site-verification": "your-verification-code-here"
+  }
 };
 
 export default function RootLayout({
