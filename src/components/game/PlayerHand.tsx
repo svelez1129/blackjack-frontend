@@ -18,7 +18,7 @@ export function PlayerHand({
   dealingSequence = [], 
   handNumber,
   isActive = false,
-  bet,
+  bet: _bet,
   totalHands = 1,
   showScore = false
 }: PlayerHandProps) {
