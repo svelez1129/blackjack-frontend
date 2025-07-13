@@ -1,15 +1,14 @@
-// Sound effects system for the casino
+// Sound effects system for the casino with lazy loading
 class SoundManager {
   private sounds: Map<string, HTMLAudioElement> = new Map()
+  private soundPaths: Map<string, string> = new Map()
   private enabled: boolean = true
 
   constructor() {
-    this.preloadSounds()
+    this.initSoundPaths()
   }
 
-  private preloadSounds() {
-    if (typeof window === 'undefined') return
-
+  private initSoundPaths() {
     const soundFiles = {
       'card-deal': '/sounds/card-deal.ogg',
       'card-flip': '/sounds/card-flip.ogg',
@@ -23,22 +22,38 @@ class SoundManager {
     }
 
     Object.entries(soundFiles).forEach(([name, path]) => {
-      try {
-        const audio = new Audio(path)
-        audio.preload = 'auto'
-        audio.volume = 0.3 // Default volume (30%)
-        this.sounds.set(name, audio)
-      } catch (error) {
-        // Handle Audio constructor errors in test environments
-        console.debug(`Failed to create audio for ${name}:`, error)
-      }
+      this.soundPaths.set(name, path)
     })
+  }
+
+  private loadSound(name: string): HTMLAudioElement | null {
+    if (typeof window === 'undefined') return null
+
+    // Check if already loaded
+    if (this.sounds.has(name)) {
+      return this.sounds.get(name)!
+    }
+
+    // Lazy load the sound
+    const path = this.soundPaths.get(name)
+    if (!path) return null
+
+    try {
+      const audio = new Audio(path)
+      audio.preload = 'auto'
+      audio.volume = 0.3 // Default volume (30%)
+      this.sounds.set(name, audio)
+      return audio
+    } catch (error) {
+      console.debug(`Failed to create audio for ${name}:`, error)
+      return null
+    }
   }
 
   play(soundName: string, volume: number = 0.3) {
     if (!this.enabled || typeof window === 'undefined') return
 
-    const sound = this.sounds.get(soundName)
+    const sound = this.loadSound(soundName) // Lazy load on first use
     if (sound) {
       sound.volume = volume
       sound.currentTime = 0 // Reset to beginning
@@ -54,7 +69,7 @@ class SoundManager {
   }
 
   setVolume(soundName: string, volume: number) {
-    const sound = this.sounds.get(soundName)
+    const sound = this.loadSound(soundName) // Lazy load if needed
     if (sound) {
       sound.volume = Math.max(0, Math.min(1, volume))
     }

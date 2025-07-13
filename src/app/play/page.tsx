@@ -8,11 +8,29 @@ import { Button} from '@/components/ui/Button'
 import { BlackjackEngine } from '@/lib/blackjack/engine'
 import { useState, useEffect, useCallback } from 'react'
 import { GameResults } from '@/components/game/GameResults'
-import { BackgroundMusic } from '@/components/ui/BackgroundMusic'
+import dynamic from 'next/dynamic'
 import { GameStorage } from '@/lib/storage'
-import { DailyRewards } from '@/components/rewards/DailyRewards'
-import { AchievementsButton } from '@/components/achievements/AchievementsButton'
-import { AchievementNotification } from '@/components/achievements/AchievementNotification'
+
+// Lazy load non-critical components to reduce initial bundle size
+const BackgroundMusic = dynamic(() => import('@/components/ui/BackgroundMusic').then(mod => ({ default: mod.BackgroundMusic })), {
+  ssr: false,
+  loading: () => null
+})
+
+const DailyRewards = dynamic(() => import('@/components/rewards/DailyRewards').then(mod => ({ default: mod.DailyRewards })), {
+  ssr: false,
+  loading: () => null
+})
+
+const AchievementsButton = dynamic(() => import('@/components/achievements/AchievementsButton').then(mod => ({ default: mod.AchievementsButton })), {
+  ssr: false,
+  loading: () => <div className="px-4 py-2 bg-emerald-600 rounded-lg animate-pulse w-16 h-10" />
+})
+
+const AchievementNotification = dynamic(() => import('@/components/achievements/AchievementNotification').then(mod => ({ default: mod.AchievementNotification })), {
+  ssr: false,
+  loading: () => null
+})
 import { useAchievements } from '@/hooks/useAchievements'
 import { getAchievementsService } from '@/lib/achievements'
 import { playChipPlace, playButtonClick, playWin, playBlackjack, playLose } from '@/lib/sounds'
