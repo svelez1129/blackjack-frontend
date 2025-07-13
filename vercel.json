@@ -4,5 +4,12 @@
       "main": true,
       "*": false
     }
-  }
+  },
+  "functions": {
+    "app/**/*": {
+      "maxDuration": 10
+    }
+  },
+  "regions": ["iad1"],
+  "framework": "nextjs"
 }

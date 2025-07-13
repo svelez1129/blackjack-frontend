@@ -2,16 +2,21 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
+import { PerformanceMonitor } from "@/components/ui/PerformanceMonitor";
 import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap", // Optimize font loading
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap", // Optimize font loading
+  preload: false, // Only preload the main font
 });
 
 export const metadata: Metadata = {
@@ -81,6 +86,8 @@ export default function RootLayout({
         {children}
         {/* Vercel Analytics */}
         <Analytics />
+        {/* Performance Monitoring */}
+        <PerformanceMonitor />
       </body>
     </html>
   );
