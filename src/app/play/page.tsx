@@ -3,6 +3,7 @@
 import { PlayerHand } from '@/components/game/PlayerHand'
 import { DealerHand } from '@/components/game/DealerHand'
 import { ActionButtons } from '@/components/game/ActionButtons'
+import { InsuranceModal } from '@/components/game/InsuranceModal'
 import { Chip } from '@/components/ui/Chip'
 import { Button} from '@/components/ui/Button'
 import { BlackjackEngine } from '@/lib/blackjack/engine'
@@ -33,7 +34,7 @@ const AchievementNotification = dynamic(() => import('@/components/achievements/
 })
 import { useAchievements } from '@/hooks/useAchievements'
 import { getAchievementsService } from '@/lib/achievements'
-import { playChipPlace, playButtonClick, playWin, playBlackjack, playLose } from '@/lib/sounds'
+import { playChipPlace, playButtonClick, playWin, playBlackjack, playLose, playInsurance } from '@/lib/sounds'
 
 export default function PlayPage() {
   const [engine] = useState(() => {
@@ -312,6 +313,18 @@ export default function PlayPage() {
     await trackAchievements({ 'first_split': 1 })
   }
 
+  const handleTakeInsurance = async () => {
+    playInsurance()
+    engine.takeInsurance()
+    updateGameState()
+  }
+
+  const handleDeclineInsurance = async () => {
+    playButtonClick()
+    engine.declineInsurance()
+    updateGameState()
+  }
+
   const handleNewGame = async () => {
     engine.resetProgress()
     updateGameState()
@@ -577,13 +590,23 @@ export default function PlayPage() {
             </div>
             
             {/* Money Display - Enhanced */}
-            <div className="text-right">
+            <div className="text-right space-y-2">
               <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-2 rounded-lg border border-yellow-400/50">
                 <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Balance</div>
                 <div className="text-xl font-bold">
                   <span className="text-yellow-400">${gameState.money.toLocaleString()}</span>
                 </div>
               </div>
+              
+              {/* Insurance Status */}
+              {gameState.insuranceTaken && (
+                <div className="bg-gradient-to-r from-blue-900/50 via-blue-800/50 to-blue-900/50 rounded-lg px-3 py-1 border border-blue-400/40 shadow-lg">
+                  <div className="text-xs text-blue-300 flex items-center gap-1">
+                    <span>🛡️</span>
+                    <span>Insurance: ${gameState.insuranceBet}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -696,6 +719,9 @@ export default function PlayPage() {
                     totalWinnings={gameState.totalWinnings || 0}
                     totalHands={gameState.playerHands.length}
                     money={gameState.money}
+                    insuranceTaken={gameState.insuranceTaken}
+                    insuranceBet={gameState.insuranceBet}
+                    insuranceResult={gameState.insuranceResult}
                   />
                 ) : gameState.phase === 'finished' && gameState.money <= 0 ? (
                   // Game Over screen - luxury styling
@@ -848,6 +874,16 @@ export default function PlayPage() {
           </div>
         </div>
       </div>
+
+      {/* Insurance Modal */}
+      {gameState.phase === 'insurance' && gameState.insuranceOffered && (
+        <InsuranceModal
+          maxBet={Math.floor(gameState.bets[0] / 2)}
+          playerMoney={gameState.money}
+          onTakeInsurance={handleTakeInsurance}
+          onDeclineInsurance={handleDeclineInsurance}
+        />
+      )}
     </main>
   )
 }

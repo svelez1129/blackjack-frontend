@@ -4,7 +4,7 @@ import { calculateHandScore, isBlackjack, isBust } from './scoring'
 import { canSplit } from '@/types/game'
 import { GameStorage, type SavedGameState } from '../storage'
 
-export type GamePhase = 'betting' | 'dealing' | 'playing' | 'dealer' | 'finished'
+export type GamePhase = 'betting' | 'dealing' | 'insurance' | 'playing' | 'dealer' | 'finished'
 export type GameResult = 'win' | 'lose' | 'push' | 'blackjack'
 
 export interface GameState {
@@ -26,6 +26,11 @@ export interface GameState {
     player: number[][]  // Sequences for each hand
     dealer: number[]
   }
+  // Insurance functionality
+  insuranceOffered?: boolean
+  insuranceTaken?: boolean
+  insuranceBet?: number
+  insuranceResult?: 'win' | 'lose'
 }
 
 export class BlackjackEngine {
@@ -52,7 +57,11 @@ export class BlackjackEngine {
       dealingSequences: {
         player: [[]],
         dealer: []
-      }
+      },
+      insuranceOffered: false,
+      insuranceTaken: false,
+      insuranceBet: 0,
+      insuranceResult: undefined
     }
   }
 
@@ -90,7 +99,11 @@ export class BlackjackEngine {
       messages: savedProgress.messages,
       totalWinnings: savedProgress.totalWinnings || 0,
       isDealerSecondCardHidden: savedProgress.isDealerSecondCardHidden !== false,
-      dealingSequences: savedProgress.dealingSequences || { player: [[]], dealer: [] }
+      dealingSequences: savedProgress.dealingSequences || { player: [[]], dealer: [] },
+      insuranceOffered: Boolean(savedProgress.insuranceOffered),
+      insuranceTaken: Boolean(savedProgress.insuranceTaken),
+      insuranceBet: Number.isFinite(savedProgress.insuranceBet) ? savedProgress.insuranceBet : 0,
+      insuranceResult: ['win', 'lose'].includes(savedProgress.insuranceResult as string) ? savedProgress.insuranceResult : undefined
     }
     
     // Ensure scores are updated after restoring cards
@@ -105,6 +118,15 @@ export class BlackjackEngine {
 
   getState(): GameState {
     return { ...this.state }
+  }
+
+  // Method for testing - allows direct state manipulation
+  setState(partialState: Partial<GameState>): void {
+    this.state = { ...this.state, ...partialState }
+    if (this.enableAutoSave) {
+      this.saveGameState()
+    }
+    this.onStateUpdate?.()
   }
 
   addMoney(amount: number): void {
@@ -153,31 +175,107 @@ export class BlackjackEngine {
 
     this.updateScores()
 
-    // Transition to playing phase
+    // Check if insurance should be offered (dealer shows Ace)
     setTimeout(() => {
-      this.state.phase = 'playing'
+      if (this.state.dealerHand[0].value === 'A') {
+        // Offer insurance when dealer shows Ace (regardless of player's hand)
+        this.state.phase = 'insurance'
+        this.state.insuranceOffered = true
+        
+        if (this.enableAutoSave) {
+          this.saveGameState()
+        }
+        
+        this.onStateUpdate?.()
+      } else {
+        // No insurance needed, go directly to playing or check blackjacks
+        this.proceedAfterInsurance()
+      }
+    }, CARD_DELAY * 3)
+  }
+
+  // Insurance methods
+  takeInsurance(): void {
+    if (this.state.phase !== 'insurance' || !this.state.insuranceOffered) return
+    
+    // Defensive checks for corrupted data
+    if (!this.state.bets || this.state.bets.length === 0 || !this.state.bets[0]) return
+    if (!Number.isFinite(this.state.money) || this.state.money < 0) return
+    if (!Number.isFinite(this.state.bets[0]) || this.state.bets[0] <= 0) return
+    
+    const maxInsurance = Math.floor(this.state.bets[0] / 2)
+    if (this.state.money < maxInsurance) return
+    
+    this.state.insuranceTaken = true
+    this.state.insuranceBet = maxInsurance
+    this.state.money -= maxInsurance
+    
+    if (this.enableAutoSave) {
+      this.saveGameState()
+    }
+    
+    this.proceedAfterInsurance()
+  }
+
+  declineInsurance(): void {
+    if (this.state.phase !== 'insurance' || !this.state.insuranceOffered) return
+    
+    this.state.insuranceTaken = false
+    this.state.insuranceBet = 0
+    
+    if (this.enableAutoSave) {
+      this.saveGameState()
+    }
+    
+    this.proceedAfterInsurance()
+  }
+
+  private proceedAfterInsurance(): void {
+    this.state.phase = 'playing'
+    
+    if (this.enableAutoSave) {
+      this.saveGameState()
+    }
+    
+    this.onStateUpdate?.()
+
+    // Check for blackjacks after dealing/insurance
+    setTimeout(() => {
+      const dealerHasBlackjack = isBlackjack(this.state.dealerHand)
       
-      if (this.enableAutoSave) {
-        this.saveGameState()
+      // Handle insurance result if taken
+      if (this.state.insuranceTaken) {
+        if (dealerHasBlackjack) {
+          this.state.insuranceResult = 'win'
+          // 2:1 payout: return original bet + 2x bet (e.g., bet $10, get $30 total)
+          this.state.money += this.state.insuranceBet! + (this.state.insuranceBet! * 2)
+        } else {
+          this.state.insuranceResult = 'lose'
+          // Money was already deducted when insurance was taken, no additional action needed
+        }
       }
       
-      this.onStateUpdate?.()
-
-      // Check for blackjacks after dealing
-      setTimeout(() => {
-        if (isBlackjack(this.state.playerHands[0])) {
-          if (isBlackjack(this.state.dealerHand)) {
-            this.revealDealerCard()
-            this.endGame(['push'], ['Both have blackjack - Push!'])
-          } else {
-            this.endGame(['blackjack'], ['Blackjack! You win!'])
-          }
-        } else if (isBlackjack(this.state.dealerHand)) {
+      if (isBlackjack(this.state.playerHands[0])) {
+        if (dealerHasBlackjack) {
           this.revealDealerCard()
+          const message = this.state.insuranceTaken 
+            ? 'Both have blackjack - Push! Insurance pays 2:1'
+            : 'Both have blackjack - Push!'
+          this.endGame(['push'], [message])
+        } else {
+          this.endGame(['blackjack'], ['Blackjack! You win!'])
+        }
+      } else if (dealerHasBlackjack) {
+        this.revealDealerCard()
+        if (this.state.insuranceTaken) {
+          // When insurance is taken and dealer has blackjack, main hand loses but insurance wins
+          // Overall you break even, but show as push with explanation
+          this.endGame(['push'], ['Dealer blackjack! Insurance wins - You break even'])
+        } else {
           this.endGame(['lose'], ['Dealer has blackjack!'])
         }
-        this.onStateUpdate?.()
-      }, CARD_DELAY * 2)
+      }
+      this.onStateUpdate?.()
     }, 100)
   }
 
@@ -357,7 +455,11 @@ split(): void {
             messages: this.state.messages,
             totalWinnings: this.state.totalWinnings,
             isDealerSecondCardHidden: this.state.isDealerSecondCardHidden,
-            dealingSequences: this.state.dealingSequences
+            dealingSequences: this.state.dealingSequences,
+            insuranceOffered: this.state.insuranceOffered,
+            insuranceTaken: this.state.insuranceTaken,
+            insuranceBet: this.state.insuranceBet,
+            insuranceResult: this.state.insuranceResult
         })
     }
     }
@@ -465,6 +567,10 @@ split(): void {
             player: [[]],
             dealer: []
         }
+        this.state.insuranceOffered = false
+        this.state.insuranceTaken = false
+        this.state.insuranceBet = 0
+        this.state.insuranceResult = undefined
         // Keep money and deck as they are
         // Reshuffle deck if getting low
         if (this.state.deck.length < 50) {
@@ -489,7 +595,11 @@ split(): void {
       dealingSequences: {
         player: [[]],
         dealer: []
-      }
+      },
+      insuranceOffered: false,
+      insuranceTaken: false,
+      insuranceBet: 0,
+      insuranceResult: undefined
     }
   }
 }
