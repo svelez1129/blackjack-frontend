@@ -18,7 +18,7 @@ export default function Home() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-black text-white overflow-hidden relative">
+    <main className="min-h-screen bg-black text-white overflow-auto relative">
       {/* Structured Data for SEO */}
       <script 
         type="application/ld+json"
@@ -79,95 +79,95 @@ export default function Home() {
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-radial from-orange-500/8 to-transparent rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 text-center">
         {/* Hero Section */}
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto py-8 sm:py-12">
           
           {/* Casino Branding */}
-          <div className="mb-8">
-            <div className="text-6xl md:text-8xl font-serif font-bold tracking-wider mb-4">
+          <div className="mb-6 sm:mb-8">
+            <div className="text-4xl sm:text-6xl lg:text-8xl font-serif font-bold tracking-wider mb-4">
               <span className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 bg-clip-text text-transparent drop-shadow-2xl">
                 BLACKJACK
               </span>
             </div>
-            <div className="text-xl md:text-2xl font-light tracking-[0.3em] text-gray-300 uppercase">
-              <span className="border-l-2 border-r-2 border-yellow-400 px-6 py-2">
+            <div className="text-base sm:text-xl lg:text-2xl font-light tracking-[0.3em] text-gray-300 uppercase">
+              <span className="border-l-2 border-r-2 border-yellow-400 px-3 sm:px-6 py-2">
                 Premium Casino Experience
               </span>
             </div>
           </div>
 
           {/* Luxury tagline */}
-          <p className="text-xl md:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
+          <p className="text-lg sm:text-xl lg:text-2xl text-gray-200 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed font-light">
             Step into the world of high-stakes blackjack. Start with 
-            <span className="text-yellow-400 font-semibold mx-2 text-2xl">$1,000</span>
+            <span className="text-yellow-400 font-semibold mx-2 text-xl sm:text-2xl">$1,000</span>
             and experience the thrill of authentic casino gaming.
           </p>
 
           {/* Animated Cards Preview - More realistic */}
-          <div className={`mb-16 transition-all duration-1500 ${showCards ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-12'}`}>
-            <div className="flex justify-center items-center gap-6">
+          <div className={`mb-8 sm:mb-16 transition-all duration-1500 ${showCards ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-12'}`}>
+            <div className="flex justify-center items-center gap-1 sm:gap-2 md:gap-4 lg:gap-6">
               {/* More realistic playing cards */}
               <div className="relative">
-                <div className="w-20 h-32 md:w-24 md:h-36 bg-white rounded-lg shadow-2xl flex flex-col justify-between p-2 transform -rotate-12 border border-gray-200">
-                  <div className="text-black text-lg md:text-2xl font-bold self-start">A</div>
-                  <div className="text-black text-4xl md:text-5xl self-center">♠</div>
-                  <div className="text-black text-lg md:text-2xl font-bold self-end rotate-180">A</div>
+                <div className="w-12 h-18 sm:w-16 sm:h-24 md:w-20 md:h-32 lg:w-24 lg:h-36 bg-white rounded-lg shadow-2xl flex flex-col justify-between p-1 sm:p-2 transform -rotate-12 border border-gray-200">
+                  <div className="text-black text-xs sm:text-sm md:text-lg lg:text-2xl font-bold self-start">A</div>
+                  <div className="text-black text-lg sm:text-2xl md:text-4xl lg:text-5xl self-center">♠</div>
+                  <div className="text-black text-xs sm:text-sm md:text-lg lg:text-2xl font-bold self-end rotate-180">A</div>
                 </div>
               </div>
               
               <div className="relative">
-                <div className="w-20 h-32 md:w-24 md:h-36 bg-white rounded-lg shadow-2xl flex flex-col justify-between p-2 transform rotate-8 border border-gray-200">
-                  <div className="text-red-600 text-lg md:text-2xl font-bold self-start">K</div>
-                  <div className="text-red-600 text-4xl md:text-5xl self-center">♥</div>
-                  <div className="text-red-600 text-lg md:text-2xl font-bold self-end rotate-180">K</div>
+                <div className="w-12 h-18 sm:w-16 sm:h-24 md:w-20 md:h-32 lg:w-24 lg:h-36 bg-white rounded-lg shadow-2xl flex flex-col justify-between p-1 sm:p-2 transform rotate-8 border border-gray-200">
+                  <div className="text-red-600 text-xs sm:text-sm md:text-lg lg:text-2xl font-bold self-start">K</div>
+                  <div className="text-red-600 text-lg sm:text-2xl md:text-4xl lg:text-5xl self-center">♥</div>
+                  <div className="text-red-600 text-xs sm:text-sm md:text-lg lg:text-2xl font-bold self-end rotate-180">K</div>
                 </div>
               </div>
 
               {/* Blackjack indicator */}
-              <div className="mx-8">
-                <div className="text-6xl md:text-8xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent animate-pulse">
+              <div className="mx-1 sm:mx-2 md:mx-4 lg:mx-8">
+                <div className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent animate-pulse">
                   21
                 </div>
-                <div className="text-yellow-400 text-sm md:text-base font-semibold tracking-widest">
+                <div className="text-yellow-400 text-xs sm:text-sm lg:text-base font-semibold tracking-widest">
                   BLACKJACK
                 </div>
               </div>
               
               <div className="relative">
-                <div className="w-20 h-32 md:w-24 md:h-36 bg-white rounded-lg shadow-2xl flex flex-col justify-between p-2 transform -rotate-6 border border-gray-200">
-                  <div className="text-black text-lg md:text-2xl font-bold self-start">Q</div>
-                  <div className="text-black text-4xl md:text-5xl self-center">♣</div>
-                  <div className="text-black text-lg md:text-2xl font-bold self-end rotate-180">Q</div>
+                <div className="w-12 h-18 sm:w-16 sm:h-24 md:w-20 md:h-32 lg:w-24 lg:h-36 bg-white rounded-lg shadow-2xl flex flex-col justify-between p-1 sm:p-2 transform -rotate-6 border border-gray-200">
+                  <div className="text-black text-xs sm:text-sm md:text-lg lg:text-2xl font-bold self-start">Q</div>
+                  <div className="text-black text-lg sm:text-2xl md:text-4xl lg:text-5xl self-center">♣</div>
+                  <div className="text-black text-xs sm:text-sm md:text-lg lg:text-2xl font-bold self-end rotate-180">Q</div>
                 </div>
               </div>
               
               <div className="relative">
-                <div className="w-20 h-32 md:w-24 md:h-36 bg-white rounded-lg shadow-2xl flex flex-col justify-between p-2 transform rotate-15 border border-gray-200">
-                  <div className="text-red-600 text-lg md:text-2xl font-bold self-start">J</div>
-                  <div className="text-red-600 text-4xl md:text-5xl self-center">♦</div>
-                  <div className="text-red-600 text-lg md:text-2xl font-bold self-end rotate-180">J</div>
+                <div className="w-12 h-18 sm:w-16 sm:h-24 md:w-20 md:h-32 lg:w-24 lg:h-36 bg-white rounded-lg shadow-2xl flex flex-col justify-between p-1 sm:p-2 transform rotate-15 border border-gray-200">
+                  <div className="text-red-600 text-xs sm:text-sm md:text-lg lg:text-2xl font-bold self-start">J</div>
+                  <div className="text-red-600 text-lg sm:text-2xl md:text-4xl lg:text-5xl self-center">♦</div>
+                  <div className="text-red-600 text-xs sm:text-sm md:text-lg lg:text-2xl font-bold self-end rotate-180">J</div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Animated casino chips */}
-          <div className={`mb-12 transition-all duration-1000 delay-500 ${showChips ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'}`}>
-            <div className="flex justify-center items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-700 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white font-bold transform -rotate-12">
+          <div className={`mb-8 sm:mb-12 transition-all duration-1000 delay-500 ${showChips ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'}`}>
+            <div className="flex justify-center items-center gap-1 sm:gap-2 md:gap-3 lg:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-gradient-to-br from-red-500 to-red-700 rounded-full border-2 sm:border-4 border-white shadow-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm transform -rotate-12">
                 $5
               </div>
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white font-bold">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full border-2 sm:border-4 border-white shadow-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                 $25
               </div>
-              <div className="w-24 h-24 bg-gradient-to-br from-black to-gray-800 rounded-full border-4 border-yellow-400 shadow-xl flex items-center justify-center text-yellow-400 font-bold text-lg transform rotate-6">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-24 md:h-24 bg-gradient-to-br from-black to-gray-800 rounded-full border-2 sm:border-4 border-yellow-400 shadow-xl flex items-center justify-center text-yellow-400 font-bold text-sm md:text-lg transform rotate-6">
                 $100
               </div>
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white font-bold">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full border-2 sm:border-4 border-white shadow-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                 $50
               </div>
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-700 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white font-bold transform rotate-12">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-gradient-to-br from-orange-500 to-orange-700 rounded-full border-2 sm:border-4 border-white shadow-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm transform rotate-12">
                 $10
               </div>
             </div>
@@ -178,14 +178,14 @@ export default function Home() {
             href="/play"
             className="group inline-block"
           >
-            <button className="relative bg-gradient-to-r from-red-600 via-red-500 to-orange-500 hover:from-red-500 hover:via-red-400 hover:to-orange-400 text-white font-bold text-xl md:text-3xl px-16 md:px-20 py-6 md:py-8 rounded-full shadow-2xl transform transition-all duration-300 hover:scale-110 hover:shadow-red-500/50 animate-pulse">
+            <button className="relative bg-gradient-to-r from-red-600 via-red-500 to-orange-500 hover:from-red-500 hover:via-red-400 hover:to-orange-400 text-white font-bold text-lg sm:text-xl lg:text-3xl px-8 sm:px-12 lg:px-20 py-4 sm:py-6 lg:py-8 rounded-full shadow-2xl transform transition-all duration-300 hover:scale-110 hover:shadow-red-500/50 animate-pulse">
               {/* Button glow effect */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-600 to-orange-500 blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
               
-              <span className="relative flex items-center gap-4">
-                <span className="text-4xl">🎰</span>
+              <span className="relative flex items-center gap-2 sm:gap-4">
+                <span className="text-2xl sm:text-3xl lg:text-4xl">🎰</span>
                 DEAL ME IN
-                <span className="text-4xl">🎰</span>
+                <span className="text-2xl sm:text-3xl lg:text-4xl">🎰</span>
               </span>
               
               {/* Pulsing ring */}
@@ -194,44 +194,44 @@ export default function Home() {
           </Link>
 
           {/* VIP Features */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="mt-8 sm:mt-12 lg:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-4xl mx-auto">
             <div className="text-center group">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-black text-2xl font-bold group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-black text-lg sm:text-2xl font-bold group-hover:scale-110 transition-transform">
                 ⚡
               </div>
               <div className="text-gray-200">
-                <div className="font-bold text-xl mb-2 text-yellow-400">Instant Action</div>
+                <div className="font-bold text-lg sm:text-xl mb-2 text-yellow-400">Instant Action</div>
                 <div className="text-sm opacity-80">No downloads, no waiting. Pure casino excitement.</div>
               </div>
             </div>
             
             <div className="text-center group">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white text-2xl font-bold group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white text-lg sm:text-2xl font-bold group-hover:scale-110 transition-transform">
                 💎
               </div>
               <div className="text-gray-200">
-                <div className="font-bold text-xl mb-2 text-yellow-400">VIP Experience</div>
+                <div className="font-bold text-lg sm:text-xl mb-2 text-yellow-400">VIP Experience</div>
                 <div className="text-sm opacity-80">$1,000 starting bankroll + daily bonuses</div>
               </div>
             </div>
             
             <div className="text-center group">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white text-lg sm:text-2xl font-bold group-hover:scale-110 transition-transform">
                 🏆
               </div>
               <div className="text-gray-200">
-                <div className="font-bold text-xl mb-2 text-yellow-400">Authentic Rules</div>
+                <div className="font-bold text-lg sm:text-xl mb-2 text-yellow-400">Authentic Rules</div>
                 <div className="text-sm opacity-80">Real casino blackjack with professional standards</div>
               </div>
             </div>
           </div>
 
           {/* Social Proof with premium styling */}
-          <div className="mt-20 text-center">
-            <div className="inline-block px-8 py-4 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-full border border-yellow-400/30">
-              <p className="text-gray-300 text-lg">
+          <div className="mt-12 sm:mt-16 lg:mt-20 text-center">
+            <div className="inline-block px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-full border border-yellow-400/30">
+              <p className="text-gray-300 text-sm sm:text-base lg:text-lg">
                 <span className="text-yellow-400 font-semibold">Join 50,000+</span> players worldwide
-                <span className="mx-4 text-yellow-400">•</span>
+                <span className="mx-2 sm:mx-4 text-yellow-400">•</span>
                 <span className="text-yellow-400 font-semibold">No registration</span> required
               </p>
             </div>

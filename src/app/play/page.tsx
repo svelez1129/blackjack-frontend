@@ -385,7 +385,7 @@ export default function PlayPage() {
     if (totalHands === 2) {
       // Two hands - side by side
       return (
-        <div className="flex justify-center gap-8">
+        <div className="flex justify-center gap-4 md:gap-6 lg:gap-8">
           {gameState.playerHands.map((hand, index) => (
             <div key={index} className={`${index === gameState.currentHandIndex && gameState.phase === 'playing' ? 'ring-2 ring-yellow-400 rounded-lg p-2' : ''}`}>
               <PlayerHand 
@@ -424,7 +424,7 @@ export default function PlayPage() {
             </div>
           </div>
           {/* Bottom two hands */}
-          <div className="flex justify-center gap-6">
+          <div className="flex justify-center gap-3 md:gap-4 lg:gap-6">
             {gameState.playerHands.slice(1).map((hand, index) => {
               const actualIndex = index + 1
               return (
@@ -452,7 +452,7 @@ export default function PlayPage() {
       return (
         <div className="space-y-3">
           {/* Top two hands */}
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-2 md:gap-3 lg:gap-4">
             {gameState.playerHands.slice(0, 2).map((hand, index) => (
               <div key={index} className={`${index === gameState.currentHandIndex && gameState.phase === 'playing' ? 'ring-2 ring-yellow-400 rounded-lg p-1' : ''}`}>
                 <PlayerHand 
@@ -469,7 +469,7 @@ export default function PlayPage() {
             ))}
           </div>
           {/* Bottom two hands */}
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-2 md:gap-3 lg:gap-4">
             {gameState.playerHands.slice(2).map((hand, index) => {
               const actualIndex = index + 2
               return (
@@ -496,7 +496,7 @@ export default function PlayPage() {
   // Show luxury loading screen while initializing
   if (isLoading) {
     return (
-      <main className="h-screen bg-black text-white overflow-hidden flex items-center justify-center relative">
+      <main className="min-h-screen bg-black text-white overflow-auto flex items-center justify-center relative">
         {/* Luxury casino background */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-radial from-gray-900/40 via-black/80 to-black"></div>
@@ -528,7 +528,7 @@ export default function PlayPage() {
   }
 
   return (
-    <main className="h-screen bg-black text-white overflow-hidden relative">
+    <main className="min-h-screen bg-black text-white overflow-auto relative">
       {/* Luxury Casino Background */}
       <div className="absolute inset-0">
         {/* Dark casino atmosphere */}
@@ -570,40 +570,43 @@ export default function PlayPage() {
       )}
 
       {/* Main Game Container */}
-      <div className="relative z-10 h-full flex flex-col">
+      <div className="relative z-10 min-h-screen flex flex-col">
         
         {/* Casino Header Bar */}
-        <div className="bg-gradient-to-r from-black via-gray-900 to-black border-b border-yellow-400/30 px-6 py-4">
+        <div className="bg-gradient-to-r from-black via-gray-900 to-black border-b border-yellow-400/30 px-3 md:px-6 py-3 md:py-4">
           <div className="flex justify-between items-center max-w-7xl mx-auto">
-            <AchievementsButton key={`achievements-${unlockedAchievements.length}`} />
+            <div className="flex-shrink-0">
+              <AchievementsButton key={`achievements-${unlockedAchievements.length}`} />
+            </div>
             
             {/* Casino Branding */}
-            <div className="text-center">
-              <div className="text-2xl font-serif font-bold tracking-widest">
+            <div className="text-center flex-1 mx-2">
+              <div className="text-xl md:text-2xl font-serif font-bold tracking-widest">
                 <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
                   BLACKJACK
                 </span>
               </div>
-              <div className="text-xs text-gray-400 tracking-[0.2em] uppercase">
+              <div className="text-xs text-gray-400 tracking-[0.2em] uppercase hidden md:block">
                 Premium Table
               </div>
             </div>
             
             {/* Money Display - Enhanced */}
-            <div className="text-right space-y-2">
-              <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-2 rounded-lg border border-yellow-400/50">
-                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Balance</div>
-                <div className="text-xl font-bold">
+            <div className="text-right space-y-2 flex-shrink-0">
+              <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-2 md:px-4 py-1 md:py-2 rounded-lg border border-yellow-400/50">
+                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1 hidden md:block">Balance</div>
+                <div className="text-lg md:text-xl font-bold">
                   <span className="text-yellow-400">${gameState.money.toLocaleString()}</span>
                 </div>
               </div>
               
               {/* Insurance Status */}
               {gameState.insuranceTaken && (
-                <div className="bg-gradient-to-r from-blue-900/50 via-blue-800/50 to-blue-900/50 rounded-lg px-3 py-1 border border-blue-400/40 shadow-lg">
+                <div className="bg-gradient-to-r from-blue-900/50 via-blue-800/50 to-blue-900/50 rounded-lg px-2 md:px-3 py-1 border border-blue-400/40 shadow-lg">
                   <div className="text-xs text-blue-300 flex items-center gap-1">
                     <span>🛡️</span>
-                    <span>Insurance: ${gameState.insuranceBet}</span>
+                    <span className="hidden md:inline">Insurance: </span>
+                    <span>${gameState.insuranceBet}</span>
                   </div>
                 </div>
               )}
@@ -612,8 +615,8 @@ export default function PlayPage() {
         </div>
 
         {/* Blackjack Table Area */}
-        <div className="flex-1 flex items-start justify-center pt-2 px-4">
-          <div className="relative w-full max-w-6xl h-full max-h-[600px]">
+        <div className="flex-1 flex items-center justify-center p-4 min-h-[600px]">
+          <div className="relative w-full max-w-6xl aspect-[4/3] max-h-[80vh]">
             
             {/* Felt Table Surface */}
             <div className="absolute inset-0 rounded-[100px] bg-gradient-to-br from-green-800 via-green-700 to-green-900 shadow-2xl border-8 border-yellow-600/80">
@@ -634,11 +637,11 @@ export default function PlayPage() {
               
               {/* Player betting areas */}
               <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
-                <div className="flex justify-center gap-8">
+                <div className="flex justify-center gap-4 md:gap-6 lg:gap-8">
                   {/* Betting circles for multiple hands */}
                   {Array.from({ length: Math.max(1, gameState.playerHands.length) }).map((_, index) => (
                     <div key={index} className="relative">
-                      <div className={`w-24 h-24 rounded-full border-4 ${
+                      <div className={`w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full border-2 md:border-3 lg:border-4 ${
                         index === gameState.currentHandIndex && gameState.phase === 'playing' 
                           ? 'border-yellow-400 bg-yellow-400/10' 
                           : 'border-yellow-400/50 bg-green-800/30'
@@ -663,7 +666,7 @@ export default function PlayPage() {
                                 }
                                 
                                 return (
-                                  <div className={`w-16 h-16 rounded-full ${getChipColor(bet)} flex items-center justify-center shadow-lg animate-chip-place`}>
+                                  <div className={`w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full ${getChipColor(bet)} flex items-center justify-center shadow-lg animate-chip-place`}>
                                     <div className="absolute inset-1 rounded-full border border-white/20"></div>
                                     <span className={`font-bold text-xs ${getTextColor(bet)} font-serif text-shadow`}>
                                       ${bet}
@@ -777,10 +780,10 @@ export default function PlayPage() {
                       <div className="inline-block bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-lg px-4 py-3 border border-yellow-400/30 shadow-lg">
                         <div className="absolute inset-1 bg-gradient-to-br from-gray-700/20 via-transparent to-gray-900/30 rounded-md"></div>
                         
-                        {/* Chip layout with buttons */}
-                        <div className="relative flex gap-3 justify-center items-center">
+                        {/* Chip layout with buttons - responsive flex wrap */}
+                        <div className="relative flex flex-wrap gap-3 justify-center items-center">
                           {/* Reset Button */}
-                          <div className="mr-2">
+                          <div className="order-1">
                             <Button 
                               onClick={handleClearBet}
                               variant="secondary"
@@ -791,33 +794,41 @@ export default function PlayPage() {
                             </Button>
                           </div>
                           
-                          <Chip 
-                            value={10} 
-                            isSelected={false} 
-                            onClick={handleAddToBet}
-                            disabled={currentBet + 10 > gameState.money}
-                          />
-                          <Chip 
-                            value={25} 
-                            isSelected={false} 
-                            onClick={handleAddToBet}
-                            disabled={currentBet + 25 > gameState.money}
-                          />
-                          <Chip 
-                            value={50} 
-                            isSelected={false} 
-                            onClick={handleAddToBet}
-                            disabled={currentBet + 50 > gameState.money}
-                          />
-                          <Chip 
-                            value={100} 
-                            isSelected={false} 
-                            onClick={handleAddToBet}
-                            disabled={currentBet + 100 > gameState.money}
-                          />
+                          <div className="order-2">
+                            <Chip 
+                              value={10} 
+                              isSelected={false} 
+                              onClick={handleAddToBet}
+                              disabled={currentBet + 10 > gameState.money}
+                            />
+                          </div>
+                          <div className="order-3">
+                            <Chip 
+                              value={25} 
+                              isSelected={false} 
+                              onClick={handleAddToBet}
+                              disabled={currentBet + 25 > gameState.money}
+                            />
+                          </div>
+                          <div className="order-4">
+                            <Chip 
+                              value={50} 
+                              isSelected={false} 
+                              onClick={handleAddToBet}
+                              disabled={currentBet + 50 > gameState.money}
+                            />
+                          </div>
+                          <div className="order-5">
+                            <Chip 
+                              value={100} 
+                              isSelected={false} 
+                              onClick={handleAddToBet}
+                              disabled={currentBet + 100 > gameState.money}
+                            />
+                          </div>
                           
                           {/* All In Button */}
-                          <div className="ml-2">
+                          <div className="order-6">
                             <Button 
                               onClick={handleAllIn}
                               variant="danger"
@@ -829,7 +840,7 @@ export default function PlayPage() {
                           </div>
                           
                           {/* Place Bet Button */}
-                          <div className="ml-2">
+                          <div className="order-7">
                             <Button 
                               onClick={handlePlaceBet}
                               variant="primary"

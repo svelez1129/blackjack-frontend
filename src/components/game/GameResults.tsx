@@ -1,6 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+
+// Client-only confetti component to avoid hydration issues
+const ConfettiEffect = dynamic(() => import('./ConfettiEffect'), {
+  ssr: false,
+  loading: () => null
+})
 
 interface GameResultsProps {
   results: string[]
@@ -150,24 +157,7 @@ export function GameResults({ results, bets, totalWinnings, totalHands, money, i
   return (
     <div className={`text-center space-y-4 transition-all duration-500 ${showAnimation ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-4'}`}>
       {/* Confetti effect for big wins */}
-      {showConfetti && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute text-2xl animate-bounce"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${1 + Math.random()}s`
-              }}
-            >
-              {['🎉', '💰', '✨', '🎊', '💎'][Math.floor(Math.random() * 5)]}
-            </div>
-          ))}
-        </div>
-      )}
+      {showConfetti && <ConfettiEffect />}
       
       {/* Luxury Main Result Panel */}
       <div className="relative bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl p-6 border-2 border-yellow-400/40 shadow-2xl backdrop-blur-sm">
