@@ -160,16 +160,16 @@ export function useAchievements() {
     const unlocked = achievements.filter(a => a.unlocked)
     // Create a new array to ensure reference changes
     return [...unlocked]
-  }, [achievements, updateCounter])
+  }, [achievements])
   
   const lockedAchievements = useMemo(() => 
     achievements.filter(a => !a.unlocked && !a.hidden), 
-    [achievements, updateCounter]
+    [achievements]
   )
   
   const hiddenAchievements = useMemo(() => 
     achievements.filter(a => !a.unlocked && a.hidden), 
-    [achievements, updateCounter]
+    [achievements]
   )
   
   const hasRecentUnlocks = recentUnlocks.length > 0
