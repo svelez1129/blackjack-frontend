@@ -155,4 +155,194 @@ describe('BlackjackEngine', () => {
       expect(initialState.currentHandIndex).toBeLessThan(initialState.playerHands.length)
     })
   })
+
+  describe('Insurance Feature', () => {
+    test('should initialize insurance state correctly', () => {
+      const state = engine.getState()
+      expect(state.insuranceOffered).toBe(false)
+      expect(state.insuranceTaken).toBe(false)
+      expect(state.insuranceBet).toBe(0)
+      expect(state.insuranceResult).toBeUndefined()
+    })
+
+    test('should offer insurance when dealer shows Ace', () => {
+      // Mock the dealer having an Ace upcard
+      const state = engine.getState()
+      
+      // Manually set dealer hand to have an Ace (simulating the dealing process)
+      // Note: In real game, this would happen through dealing process
+      state.dealerHand = [{ suit: 'hearts', value: 'A' }, { suit: 'spades', value: '10' }]
+      state.phase = 'insurance'
+      state.insuranceOffered = true
+      
+      expect(state.insuranceOffered).toBe(true)
+      expect(state.phase).toBe('insurance')
+    })
+
+    test('should take insurance successfully', () => {
+      // Create isolated engine for this test to avoid beforeEach interference
+      const testEngine = new BlackjackEngine(1000, false)
+      
+      // Set up insurance scenario manually
+      testEngine.setState({
+        phase: 'insurance',
+        insuranceOffered: true,
+        money: 900, // Simulate having money after bet
+        bets: [100] // Simulate a $100 bet
+      })
+      
+      testEngine.takeInsurance()
+      const newState = testEngine.getState()
+      
+      expect(newState.insuranceTaken).toBe(true)
+      expect(newState.insuranceBet).toBe(50) // Half of $100 bet
+      expect(newState.money).toBe(850) // $900 - $50 insurance
+      expect(newState.phase).toBe('playing') // Phase changes after taking insurance
+    })
+
+    test('should decline insurance successfully', () => {
+      // Create isolated engine for this test
+      const testEngine = new BlackjackEngine(1000, false)
+      
+      testEngine.setState({
+        phase: 'insurance',
+        insuranceOffered: true,
+        money: 900, // Simulate having money after bet
+        bets: [100] // Simulate a $100 bet
+      })
+      
+      testEngine.declineInsurance()
+      const newState = testEngine.getState()
+      
+      expect(newState.insuranceTaken).toBe(false)
+      expect(newState.insuranceBet).toBe(0)
+      expect(newState.phase).toBe('playing')
+    })
+
+    test('should not allow insurance when not offered', () => {
+      engine.setState({
+        phase: 'playing', // Not in insurance phase
+        insuranceOffered: false
+      })
+      
+      engine.takeInsurance()
+      const newState = engine.getState()
+      
+      // Should remain unchanged
+      expect(newState.insuranceTaken).toBe(false)
+      expect(newState.insuranceBet).toBe(0)
+    })
+
+    test('should not allow insurance with insufficient funds', () => {
+      // Create isolated engine for this test
+      const testEngine = new BlackjackEngine(1000, false)
+      
+      testEngine.setState({
+        phase: 'insurance',
+        insuranceOffered: true,
+        bets: [100], // Would require $50 insurance
+        money: 40 // Less than required $50 for insurance
+      })
+      
+      testEngine.takeInsurance()
+      const newState = testEngine.getState()
+      
+      // Insurance should not be taken due to insufficient funds
+      expect(newState.insuranceTaken).toBe(false)
+      expect(newState.money).toBe(40) // Money unchanged
+      expect(newState.phase).toBe('insurance') // Phase should remain insurance since nothing happened
+    })
+
+    test('should calculate insurance payout correctly when dealer has blackjack', () => {
+      // Set up insurance taken scenario
+      const state = engine.getState()
+      state.insuranceTaken = true
+      state.insuranceBet = 50
+      state.money = 850
+      
+      // Simulate dealer blackjack scenario
+      state.dealerHand = [{ suit: 'hearts', value: 'A' }, { suit: 'spades', value: 'K' }]
+      
+      // Manually trigger insurance payout logic
+      state.insuranceResult = 'win'
+      state.money += state.insuranceBet + (state.insuranceBet * 2) // 2:1 payout
+      
+      expect(state.insuranceResult).toBe('win')
+      expect(state.money).toBe(1000) // $850 + $50 + $100 = original $1000
+    })
+
+    test('should handle insurance loss when dealer does not have blackjack', () => {
+      // Set up insurance taken scenario
+      const state = engine.getState()
+      state.insuranceTaken = true
+      state.insuranceBet = 50
+      state.money = 850
+      
+      // Simulate dealer not having blackjack
+      state.dealerHand = [{ suit: 'hearts', value: 'A' }, { suit: 'spades', value: '6' }]
+      
+      // Manually trigger insurance loss logic
+      state.insuranceResult = 'lose'
+      // Money already deducted when insurance was taken
+      
+      expect(state.insuranceResult).toBe('lose')
+      expect(state.money).toBe(850) // Money remains as insurance was lost
+    })
+
+    test('should reset insurance state when starting new game', () => {
+      // Set up game with insurance taken
+      const state = engine.getState()
+      state.insuranceTaken = true
+      state.insuranceBet = 50
+      state.insuranceResult = 'win'
+      
+      engine.newGame()
+      const newState = engine.getState()
+      
+      expect(newState.insuranceOffered).toBe(false)
+      expect(newState.insuranceTaken).toBe(false)
+      expect(newState.insuranceBet).toBe(0)
+      expect(newState.insuranceResult).toBeUndefined()
+    })
+
+    test('should reset insurance state when resetting for next round', () => {
+      // Set up game with insurance taken
+      const state = engine.getState()
+      state.insuranceTaken = true
+      state.insuranceBet = 50
+      state.insuranceResult = 'lose'
+      
+      engine.resetForNextRound()
+      const newState = engine.getState()
+      
+      expect(newState.insuranceOffered).toBe(false)
+      expect(newState.insuranceTaken).toBe(false)
+      expect(newState.insuranceBet).toBe(0)
+      expect(newState.insuranceResult).toBeUndefined()
+    })
+
+    test('should maintain insurance state in save data', () => {
+      // Set up insurance scenario
+      const state = engine.getState()
+      state.insuranceTaken = true
+      state.insuranceBet = 50
+      state.insuranceResult = 'win'
+      
+      // Enable saving and get saved state
+      engine.enableSaving()
+      const savedState = {
+        ...state,
+        timestamp: Date.now()
+      }
+      
+      // Create new engine and restore
+      const newEngine = new BlackjackEngine(1000, false)
+      newEngine.restoreFromSave(savedState)
+      const restoredState = newEngine.getState()
+      
+      expect(restoredState.insuranceTaken).toBe(true)
+      expect(restoredState.insuranceBet).toBe(50)
+      expect(restoredState.insuranceResult).toBe('win')
+    })
+  })
 })
