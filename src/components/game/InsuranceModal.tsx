@@ -20,24 +20,24 @@ export function InsuranceModal({
   const canAffordInsurance = playerMoney >= maxBet
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="relative">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="relative w-full max-w-md">
         {/* Luxury modal background */}
-        <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl p-8 border-2 border-yellow-400/50 shadow-2xl backdrop-blur-sm max-w-md mx-4">
+        <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-xl md:rounded-2xl p-4 md:p-8 border-2 border-yellow-400/50 shadow-2xl backdrop-blur-sm">
           <div className="absolute inset-1 bg-gradient-to-br from-gray-800/20 via-transparent to-gray-900/30 rounded-xl"></div>
           
           {/* Modal content */}
           <div className="relative z-10 text-center">
             {/* Header */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-yellow-400 mb-2">🛡️ Insurance</h2>
+            <div className="mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-yellow-400 mb-2">🛡️ Insurance</h2>
               <p className="text-gray-300 text-sm">
                 Dealer shows an Ace. Protect against dealer blackjack?
               </p>
             </div>
 
             {/* Insurance details */}
-            <div className="bg-gray-800/50 rounded-lg p-4 mb-6 border border-gray-700">
+            <div className="bg-gray-800/50 rounded-lg p-3 md:p-4 mb-4 md:mb-6 border border-gray-700">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-400">Insurance Cost:</span>
                 <span className="text-white font-bold">${maxBet}</span>
@@ -52,12 +52,12 @@ export function InsuranceModal({
             </div>
 
             {/* Action buttons */}
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Button 
                 onClick={onTakeInsurance} 
                 variant="primary"
                 disabled={disabled || !canAffordInsurance}
-                className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 border-emerald-400 shadow-emerald-500/30"
+                className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 border-emerald-400 shadow-emerald-500/30 text-sm sm:text-base px-4 py-2"
               >
                 🛡️ Take Insurance
               </Button>
@@ -65,6 +65,7 @@ export function InsuranceModal({
                 onClick={onDeclineInsurance} 
                 variant="secondary"
                 disabled={disabled}
+                className="text-sm sm:text-base px-4 py-2"
               >
                 ❌ No Insurance
               </Button>

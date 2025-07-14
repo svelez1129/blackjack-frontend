@@ -51,20 +51,20 @@ export function AchievementsList({ isOpen, onClose }: AchievementsListProps) {
   const categories = ['all', ...Object.keys(ACHIEVEMENT_CATEGORIES)]
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-emerald-800 to-emerald-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-emerald-600">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 md:p-4">
+      <div className="bg-gradient-to-br from-emerald-800 to-emerald-900 rounded-xl md:rounded-2xl max-w-4xl w-full max-h-[95vh] md:max-h-[90vh] overflow-hidden border border-emerald-600">
         {/* Header */}
-        <div className="p-6 border-b border-emerald-600">
+        <div className="p-3 md:p-6 border-b border-emerald-600">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Achievements</h2>
-              <div className="flex items-center gap-6 text-emerald-200">
+            <div className="flex-1 mr-2">
+              <h2 className="text-xl md:text-3xl font-bold text-white mb-2">Achievements</h2>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm md:text-base text-emerald-200">
                 <span>{stats.unlockedCount}/{stats.totalAchievements} Unlocked</span>
                 <span>{stats.completionPercentage}% Complete</span>
-                <span>💰 {stats.totalRewards} Coins Earned</span>
+                <span>💰 {stats.totalRewards} Coins</span>
               </div>
             </div>
-            <Button onClick={onClose} variant="secondary" className="px-4 py-2">
+            <Button onClick={onClose} variant="secondary" className="px-3 md:px-4 py-2 flex-shrink-0">
               ✕
             </Button>
           </div>
@@ -81,14 +81,14 @@ export function AchievementsList({ isOpen, onClose }: AchievementsListProps) {
         </div>
 
         {/* Category Tabs */}
-        <div className="p-4 border-b border-emerald-600 overflow-x-auto">
-          <div className="flex gap-2 min-w-max">
+        <div className="p-2 md:p-4 border-b border-emerald-600 overflow-x-auto">
+          <div className="flex gap-1 md:gap-2 min-w-max">
             {categories.map(category => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className={`
-                  px-4 py-2 rounded-lg text-sm font-medium transition-all
+                  px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-shrink-0
                   ${selectedCategory === category 
                     ? 'bg-emerald-600 text-white' 
                     : 'bg-emerald-700/50 text-emerald-200 hover:bg-emerald-600/50'
@@ -102,11 +102,11 @@ export function AchievementsList({ isOpen, onClose }: AchievementsListProps) {
         </div>
 
         {/* Achievements List */}
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
+        <div className="p-3 md:p-6 overflow-y-auto max-h-[60vh] md:max-h-[50vh]">
           {isLoading ? (
             <div className="text-center text-emerald-200">Loading achievements...</div>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-3 md:gap-4">
               {filteredAchievements.map(achievement => (
                 <AchievementCard 
                   key={`${achievement.id}-${achievement.current}-${achievement.unlocked}`} 
@@ -152,28 +152,28 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
 
   return (
     <div className={`
-      p-4 rounded-lg border-2 transition-all
+      p-3 md:p-4 rounded-lg border-2 transition-all
       ${isUnlocked 
         ? `bg-emerald-700/30 ${getRarityColor(achievement.rarity)}` 
         : 'bg-emerald-800/20 border-emerald-600 opacity-75'
       }
     `}>
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3 md:gap-4">
         {/* Icon */}
         <div className={`
-          text-3xl p-2 rounded-lg
+          text-2xl md:text-3xl p-1 md:p-2 rounded-lg flex-shrink-0
           ${isUnlocked ? 'opacity-100' : 'opacity-50 grayscale'}
         `}>
           {achievement.icon}
         </div>
 
         {/* Content */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <h3 className={`font-bold text-lg ${isUnlocked ? 'text-white' : 'text-emerald-300'}`}>
+            <h3 className={`font-bold text-base md:text-lg truncate pr-2 ${isUnlocked ? 'text-white' : 'text-emerald-300'}`}>
               {achievement.title}
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
               {isUnlocked && (
                 <span className="text-yellow-400 text-sm">✅</span>
               )}
@@ -214,7 +214,7 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
           )}
 
           {/* Reward */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-yellow-400">💰</span>
               <span className={isUnlocked ? 'text-yellow-400' : 'text-emerald-300'}>
