@@ -23,9 +23,9 @@ describe('Insurance Edge Cases and Error Handling', () => {
     test('should not allow insurance when not offered', () => {
       engine.placeBet(100)
       let state = engine.getState()
-      // @ts-ignore - accessing private state for testing
+      // @ts-expect-error - accessing private state for testing
       engine.state.phase = 'playing' // Skip insurance phase
-      // @ts-ignore
+      // @ts-expect-error - accessing private state for testing
       engine.state.insuranceOffered = false
       
       engine.takeInsurance()
@@ -37,13 +37,13 @@ describe('Insurance Edge Cases and Error Handling', () => {
     test('should handle multiple insurance attempts gracefully', () => {
       engine.placeBet(100)
       let state = engine.getState()
-      // @ts-ignore - accessing private state for testing
+      // @ts-expect-error - accessing private state for testing
       engine.state.phase = 'insurance'
-      // @ts-ignore
+      // @ts-expect-error - accessing private state for testing
       engine.state.insuranceOffered = true
-      // @ts-ignore
+      // @ts-expect-error - accessing private state for testing
       engine.state.money = 900 // Ensure sufficient funds after bet
-      // @ts-ignore
+      // @ts-expect-error - accessing private state for testing
       engine.state.bets = [100] // Ensure bet is recorded correctly
       
       // First insurance attempt
@@ -66,13 +66,13 @@ describe('Insurance Edge Cases and Error Handling', () => {
     test('should handle minimum possible bet', () => {
       engine.placeBet(1)
       let state = engine.getState()
-      // @ts-ignore - accessing private state for testing
+      // @ts-expect-error - accessing private state for testing
       engine.state.phase = 'insurance'
-      // @ts-ignore
+      // @ts-expect-error - accessing private state for testing
       engine.state.insuranceOffered = true
-      // @ts-ignore
+      // @ts-expect-error - accessing private state for testing
       engine.state.money = 999 // After $1 bet
-      // @ts-ignore
+      // @ts-expect-error - accessing private state for testing
       engine.state.bets = [1] // Ensure bet is recorded correctly
       
       engine.takeInsurance()

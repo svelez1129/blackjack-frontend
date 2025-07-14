@@ -116,7 +116,6 @@ describe('Insurance Integration Tests', () => {
       })
       
       engine.takeInsurance()
-      let state = engine.getState()
       
       engine.setState({
         insuranceResult: 'win'
