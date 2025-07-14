@@ -8,9 +8,12 @@ interface GameResultsProps {
   totalWinnings: number
   totalHands: number
   money: number
+  insuranceTaken?: boolean
+  insuranceBet?: number
+  insuranceResult?: 'win' | 'lose'
 }
 
-export function GameResults({ results, bets, totalWinnings, totalHands, money }: GameResultsProps) {
+export function GameResults({ results, bets, totalWinnings, totalHands, money, insuranceTaken, insuranceBet, insuranceResult }: GameResultsProps) {
   const [showAnimation, setShowAnimation] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
 
@@ -182,6 +185,31 @@ export function GameResults({ results, bets, totalWinnings, totalHands, money }:
           <p className="text-gray-300 text-sm tracking-wide">
             {totalWinnings > 0 ? 'Money Won' : totalWinnings < 0 ? 'Money Lost' : 'No Change'}
           </p>
+
+          {/* Insurance Result Display */}
+          {insuranceTaken && (
+            <div className="mt-4 p-3 bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-lg border border-blue-400/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-400">🛡️</span>
+                  <span className="text-blue-200 font-semibold">Insurance</span>
+                </div>
+                <div className={`font-bold ${insuranceResult === 'win' ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {insuranceResult === 'win' ? (
+                    <span>+${insuranceBet! * 2} 🎉</span>
+                  ) : (
+                    <span>-${insuranceBet} ❌</span>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                {insuranceResult === 'win' 
+                  ? 'Dealer had blackjack - Insurance pays 2:1!' 
+                  : 'Dealer did not have blackjack - Insurance lost'
+                }
+              </p>
+            </div>
+          )}
 
           {/* Game Over message with dramatic styling */}
           {money <= 0 && (

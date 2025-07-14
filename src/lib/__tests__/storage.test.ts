@@ -24,6 +24,11 @@ describe('GameStorage', () => {
     test('should handle save errors gracefully', () => {
       // Mock localStorage to throw error
       const originalSetItem = localStorage.setItem
+      const originalConsoleError = console.error
+      
+      // Suppress console.error for this test
+      console.error = jest.fn()
+      
       localStorage.setItem = jest.fn(() => {
         throw new Error('Storage full')
       })
@@ -32,8 +37,9 @@ describe('GameStorage', () => {
         GameStorage.saveGuestProgress({ money: 1000 })
       }).not.toThrow()
 
-      // Restore original
+      // Restore originals
       localStorage.setItem = originalSetItem
+      console.error = originalConsoleError
     })
   })
 
@@ -62,16 +68,81 @@ describe('GameStorage', () => {
       expect(result?.money).toBe(1200)
     })
 
+    test('should save and load insurance state correctly', () => {
+      const mockProgress = {
+        money: 850,
+        timestamp: Date.now(),
+        playerHands: [[{ suit: 'hearts', value: '10' }, { suit: 'spades', value: '7' }]],
+        dealerHand: [{ suit: 'diamonds', value: 'A' }, { suit: 'clubs', value: 'K' }],
+        currentHandIndex: 0,
+        playerScores: [17],
+        dealerScore: 21,
+        dealerVisibleScore: 11,
+        bets: [100],
+        phase: 'finished' as const,
+        isDealerSecondCardHidden: false,
+        dealingSequences: { player: [[]], dealer: [] },
+        insuranceOffered: true,
+        insuranceTaken: true,
+        insuranceBet: 50,
+        insuranceResult: 'win' as const
+      }
+
+      GameStorage.saveGuestProgress(mockProgress)
+      const result = GameStorage.loadGuestProgress()
+
+      expect(result).toBeTruthy()
+      expect(result?.insuranceOffered).toBe(true)
+      expect(result?.insuranceTaken).toBe(true)
+      expect(result?.insuranceBet).toBe(50)
+      expect(result?.insuranceResult).toBe('win')
+      expect(result?.money).toBe(850)
+    })
+
+    test('should handle missing insurance fields with defaults', () => {
+      const mockProgressWithoutInsurance = {
+        money: 1000,
+        timestamp: Date.now(),
+        playerHands: [[]],
+        dealerHand: [],
+        currentHandIndex: 0,
+        playerScores: [0],
+        dealerScore: 0,
+        dealerVisibleScore: 0,
+        bets: [25],
+        phase: 'betting' as const,
+        isDealerSecondCardHidden: true,
+        dealingSequences: { player: [[]], dealer: [] }
+        // Note: No insurance fields
+      }
+
+      localStorage.setItem('blackjack_guest_save', JSON.stringify(mockProgressWithoutInsurance))
+      const result = GameStorage.loadGuestProgress()
+
+      expect(result).toBeTruthy()
+      expect(result?.insuranceOffered).toBe(false)
+      expect(result?.insuranceTaken).toBe(false)
+      expect(result?.insuranceBet).toBe(0)
+      expect(result?.insuranceResult).toBeUndefined()
+    })
+
     test('should return null when no progress exists', () => {
       const result = GameStorage.loadGuestProgress()
       expect(result).toBeNull()
     })
 
     test('should handle corrupted data gracefully', () => {
+      // Suppress console.error for this test
+      const originalConsoleError = console.error
+      console.error = jest.fn()
+      
       localStorage.setItem('blackjack_guest_save', 'invalid json')
 
       const result = GameStorage.loadGuestProgress()
       expect(result).toBeNull()
+      
+      // Restore console.error
+      console.error = originalConsoleError
     })
   })
 
@@ -119,6 +190,11 @@ describe('GameStorage', () => {
     test('should handle localStorage access errors', () => {
       // Mock localStorage to be unavailable (some browsers/modes)
       const originalLocalStorage = window.localStorage
+      const originalConsoleError = console.error
+      
+      // Suppress console.error for this test
+      console.error = jest.fn()
+      
       Object.defineProperty(window, 'localStorage', {
         value: undefined,
         writable: true
@@ -137,6 +213,7 @@ describe('GameStorage', () => {
         value: originalLocalStorage,
         writable: true
       })
+      console.error = originalConsoleError
     })
   })
 })

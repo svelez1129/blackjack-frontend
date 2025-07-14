@@ -12,7 +12,7 @@ export interface SavedGameState {
   dealerScore: number
   dealerVisibleScore: number
   bets: number[]
-  phase: 'betting' | 'dealing' | 'playing' | 'dealer' | 'finished'
+  phase: 'betting' | 'dealing' | 'insurance' | 'playing' | 'dealer' | 'finished'
   results?: GameResult[]  // Use the correct type
   messages?: string[]
   totalWinnings?: number
@@ -21,6 +21,11 @@ export interface SavedGameState {
     player: number[][]
     dealer: number[]
   }
+  // Insurance functionality
+  insuranceOffered?: boolean
+  insuranceTaken?: boolean
+  insuranceBet?: number
+  insuranceResult?: 'win' | 'lose'
 }
 
 const GUEST_SAVE_KEY = 'blackjack_guest_save'
@@ -47,6 +52,10 @@ export class GameStorage {
           player: [[]],
           dealer: []
         },
+        insuranceOffered: false,
+        insuranceTaken: false,
+        insuranceBet: 0,
+        insuranceResult: undefined,
         ...gameState,
         timestamp: Date.now()
       }
@@ -81,7 +90,14 @@ export class GameStorage {
         return null
       }
 
-      return saveData as SavedGameState
+      // Ensure insurance fields have defaults for backward compatibility
+      return {
+        ...saveData,
+        insuranceOffered: Boolean(saveData.insuranceOffered),
+        insuranceTaken: Boolean(saveData.insuranceTaken), 
+        insuranceBet: Number.isFinite(saveData.insuranceBet) ? saveData.insuranceBet : 0,
+        insuranceResult: ['win', 'lose'].includes(saveData.insuranceResult) ? saveData.insuranceResult : undefined
+      } as SavedGameState
     } catch (error) {
       console.error('Failed to load game progress:', error)
       // Clear corrupted save data - but only if localStorage is available

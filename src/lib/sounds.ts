@@ -18,7 +18,8 @@ class SoundManager {
       'win': '/sounds/win.ogg',
       'blackjack': '/sounds/blackjackwin.mp3',
       'lose': '/sounds/lose.ogg',
-      'achievement': '/sounds/achievement-unlocked.mp3'
+      'achievement': '/sounds/achievement-unlocked.mp3',
+      'insurance': '/sounds/chip-place.ogg' // Reuse chip sound for insurance
     }
 
     Object.entries(soundFiles).forEach(([name, path]) => {
@@ -95,3 +96,4 @@ export const playWin = () => soundManager.play('win', 0.6)
 export const playBlackjack = () => soundManager.play('blackjack', 0.7)
 export const playLose = () => soundManager.play('lose', 0.4)
 export const playAchievement = () => soundManager.play('achievement', 0.8)
+export const playInsurance = () => soundManager.play('insurance', 0.4)
